@@ -11,7 +11,7 @@ import java.util.List;
  * Created by mikepenz on 18.01.16.
  */
 public class FastItemAdapter<Item extends IItem> extends FastAdapter<Item> {
-    ItemAdapter<Item> mItemAdapter = new ItemAdapter<>();
+    private final ItemAdapter<Item> mItemAdapter = new ItemAdapter<>();
 
     /**
      * ctor
@@ -134,8 +134,9 @@ public class FastItemAdapter<Item extends IItem> extends FastAdapter<Item> {
      *
      * @param items the new items to set
      */
-    public void set(List<Item> items) {
+    public FastItemAdapter<Item> set(List<Item> items) {
         mItemAdapter.set(items);
+        return this;
     }
 
     /**
@@ -143,8 +144,9 @@ public class FastItemAdapter<Item extends IItem> extends FastAdapter<Item> {
      *
      * @param items the new items to set
      */
-    public void setNewList(List<Item> items) {
+    public FastItemAdapter<Item> setNewList(List<Item> items) {
         mItemAdapter.setNewList(items);
+        return this;
     }
 
     /**
@@ -153,8 +155,9 @@ public class FastItemAdapter<Item extends IItem> extends FastAdapter<Item> {
      * @param items the items to add
      */
     @SafeVarargs
-    public final void add(Item... items) {
+    public final FastItemAdapter<Item> add(Item... items) {
         mItemAdapter.add(items);
+        return this;
     }
 
     /**
@@ -162,8 +165,9 @@ public class FastItemAdapter<Item extends IItem> extends FastAdapter<Item> {
      *
      * @param items the items to add
      */
-    public void add(List<Item> items) {
+    public FastItemAdapter<Item> add(List<Item> items) {
         mItemAdapter.add(items);
+        return this;
     }
 
     /**
@@ -173,8 +177,9 @@ public class FastItemAdapter<Item extends IItem> extends FastAdapter<Item> {
      * @param items    the items to add
      */
     @SafeVarargs
-    public final void add(int position, Item... items) {
+    public final FastItemAdapter<Item> add(int position, Item... items) {
         mItemAdapter.add(position, items);
+        return this;
     }
 
     /**
@@ -183,8 +188,9 @@ public class FastItemAdapter<Item extends IItem> extends FastAdapter<Item> {
      * @param position the global position
      * @param items    the items to add
      */
-    public void add(int position, List<Item> items) {
+    public FastItemAdapter<Item> add(int position, List<Item> items) {
         mItemAdapter.add(position, items);
+        return this;
     }
 
     /**
@@ -193,8 +199,9 @@ public class FastItemAdapter<Item extends IItem> extends FastAdapter<Item> {
      * @param position the global position
      * @param item     the item to set
      */
-    public void set(int position, Item item) {
+    public FastItemAdapter<Item> set(int position, Item item) {
         mItemAdapter.set(position, item);
+        return this;
     }
 
     /**
@@ -202,8 +209,9 @@ public class FastItemAdapter<Item extends IItem> extends FastAdapter<Item> {
      *
      * @param item the item to add
      */
-    public void add(Item item) {
+    public FastItemAdapter<Item> add(Item item) {
         mItemAdapter.add(item);
+        return this;
     }
 
     /**
@@ -212,8 +220,21 @@ public class FastItemAdapter<Item extends IItem> extends FastAdapter<Item> {
      * @param position the global position
      * @param item     the item to add
      */
-    public void add(int position, Item item) {
+    public FastItemAdapter<Item> add(int position, Item item) {
         mItemAdapter.add(position, item);
+        return this;
+    }
+
+    /**
+     * moves an item within the list from a position to a position
+     *
+     * @param fromPosition the position global from which we want to move
+     * @param toPosition   the global position to which to move
+     * @return this
+     */
+    public FastItemAdapter<Item> move(int fromPosition, int toPosition) {
+        mItemAdapter.move(fromPosition, toPosition);
+        return this;
     }
 
     /**
@@ -221,8 +242,9 @@ public class FastItemAdapter<Item extends IItem> extends FastAdapter<Item> {
      *
      * @param position the global position
      */
-    public void remove(int position) {
+    public FastItemAdapter<Item> remove(int position) {
         mItemAdapter.remove(position);
+        return this;
     }
 
     /**
@@ -231,14 +253,16 @@ public class FastItemAdapter<Item extends IItem> extends FastAdapter<Item> {
      * @param position  the global position
      * @param itemCount the count of items removed
      */
-    public void removeItemRange(int position, int itemCount) {
+    public FastItemAdapter<Item> removeItemRange(int position, int itemCount) {
         mItemAdapter.removeRange(position, itemCount);
+        return this;
     }
 
     /**
      * removes all items of this adapter
      */
-    public void clear() {
+    public FastItemAdapter<Item> clear() {
         mItemAdapter.clear();
+        return this;
     }
 }

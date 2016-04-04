@@ -5,6 +5,7 @@ import com.mikepenz.fastadapter.utils.Function;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -16,7 +17,6 @@ import static java.util.Arrays.asList;
  */
 public class GenericItemAdapter<Model, Item extends GenericAbstractItem<Model, Item, ?>> extends ItemAdapter<Item> {
     private final Function<Model, Item> mItemFactory;
-    private List<Model> mItems = new ArrayList<>();
 
     /**
      * @param itemClass  the class of your item (Item extends GenericAbstractItem)
@@ -34,13 +34,26 @@ public class GenericItemAdapter<Model, Item extends GenericAbstractItem<Model, I
     }
 
     /**
+     * returns the list of the model generated from the list of items
+     *
+     * @return the list with all model objects
+     */
+    public List<Model> getModels() {
+        List<Model> models = new ArrayList<>();
+        for (Item item : getAdapterItems()) {
+            models.add(item.getModel());
+        }
+        return models;
+    }
+
+    /**
      * set a new list of models for this adapter
      *
      * @param models the set models
      */
-    public void setModel(List<Model> models) {
+    public GenericItemAdapter<Model, Item> setModel(List<Model> models) {
         super.set(toItems(models));
-        mItems = models;
+        return this;
     }
 
     /**
@@ -48,9 +61,9 @@ public class GenericItemAdapter<Model, Item extends GenericAbstractItem<Model, I
      *
      * @param models the set models
      */
-    public void setNewModel(List<Model> models) {
+    public GenericItemAdapter<Model, Item> setNewModel(List<Model> models) {
         super.setNewList(toItems(models));
-        mItems = models;
+        return this;
     }
 
     /**
@@ -59,8 +72,9 @@ public class GenericItemAdapter<Model, Item extends GenericAbstractItem<Model, I
      * @param models the added models
      */
     @SafeVarargs
-    public final void addModel(Model... models) {
+    public final GenericItemAdapter<Model, Item> addModel(Model... models) {
         addModel(asList(models));
+        return this;
     }
 
     /**
@@ -68,9 +82,9 @@ public class GenericItemAdapter<Model, Item extends GenericAbstractItem<Model, I
      *
      * @param models the added models
      */
-    public void addModel(List<Model> models) {
+    public GenericItemAdapter<Model, Item> addModel(List<Model> models) {
         super.add(toItems(models));
-        mItems.addAll(models);
+        return this;
     }
 
     /**
@@ -80,8 +94,9 @@ public class GenericItemAdapter<Model, Item extends GenericAbstractItem<Model, I
      * @param models   the added models
      */
     @SafeVarargs
-    public final void addModel(int position, Model... models) {
+    public final GenericItemAdapter<Model, Item> addModel(int position, Model... models) {
         addModel(position, asList(models));
+        return this;
     }
 
     /**
@@ -90,9 +105,9 @@ public class GenericItemAdapter<Model, Item extends GenericAbstractItem<Model, I
      * @param position the global position
      * @param models   the added models
      */
-    public void addModel(int position, List<Model> models) {
+    public GenericItemAdapter<Model, Item> addModel(int position, List<Model> models) {
         super.add(position, toItems(models));
-        mItems.addAll(position - getFastAdapter().getPreItemCount(position), models);
+        return this;
     }
 
     /**
@@ -101,18 +116,31 @@ public class GenericItemAdapter<Model, Item extends GenericAbstractItem<Model, I
      * @param position the global position
      * @param model    the set model
      */
-    public void setModel(int position, Model model) {
+    public GenericItemAdapter<Model, Item> setModel(int position, Model model) {
         super.set(position, toItem(model));
-        mItems.set(position - getFastAdapter().getPreItemCount(position), model);
+        return this;
     }
 
     /**
      * clear all models
      */
-    public void clearModel() {
+    public GenericItemAdapter<Model, Item> clearModel() {
         super.clear();
-        mItems.clear();
+        return this;
     }
+
+    /**
+     * moves an model within the list from a position to a position
+     *
+     * @param fromPosition the position global from which we want to move
+     * @param toPosition   the global position to which to move
+     * @return this
+     */
+    public GenericItemAdapter<Model, Item> moveModel(int fromPosition, int toPosition) {
+        super.move(fromPosition, toPosition);
+        return this;
+    }
+
 
     /**
      * remove a range oof model items starting with the (global) position and the size
@@ -120,18 +148,9 @@ public class GenericItemAdapter<Model, Item extends GenericAbstractItem<Model, I
      * @param position  the global position
      * @param itemCount the count of items which were removed
      */
-    public void removeModelRange(int position, int itemCount) {
+    public GenericItemAdapter<Model, Item> removeModelRange(int position, int itemCount) {
         super.removeRange(position, itemCount);
-
-        //global position to relative
-        int length = mItems.size();
-        int preItemCount = getFastAdapter().getPreItemCount(position);
-        //make sure we do not delete to many items
-        int saveItemCount = Math.min(itemCount, length - position + preItemCount);
-
-        for (int i = 0; i < saveItemCount; i++) {
-            mItems.remove(position - preItemCount);
-        }
+        return this;
     }
 
     /**
@@ -139,9 +158,9 @@ public class GenericItemAdapter<Model, Item extends GenericAbstractItem<Model, I
      *
      * @param position the global position
      */
-    public void removeModel(int position) {
+    public GenericItemAdapter<Model, Item> removeModel(int position) {
         super.remove(position);
-        mItems.remove(position - getFastAdapter().getPreItemCount(position));
+        return this;
     }
 
     /**
@@ -151,11 +170,13 @@ public class GenericItemAdapter<Model, Item extends GenericAbstractItem<Model, I
      * @return the list of items referencing the models
      */
     protected List<Item> toItems(List<Model> models) {
-        List<Item> items = new ArrayList<>();
-        if (models != null) {
-            for (Model model : models) {
-                items.add(toItem(model));
-            }
+        if (models == null) {
+            return Collections.emptyList();
+        }
+
+        List<Item> items = new ArrayList<>(models.size());
+        for (Model model : models) {
+            items.add(toItem(model));
         }
         return items;
     }

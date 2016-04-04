@@ -13,7 +13,7 @@ import com.mikepenz.fastadapter.FastAdapter;
 import com.mikepenz.fastadapter.IItem;
 import com.mikepenz.fastadapter.adapters.HeaderAdapter;
 import com.mikepenz.fastadapter.adapters.ItemAdapter;
-import com.mikepenz.fastadapter.app.adapter.StickyHeaderAdapter;
+import com.mikepenz.fastadapter.app.adapters.StickyHeaderAdapter;
 import com.mikepenz.fastadapter.app.items.SampleItem;
 import com.mikepenz.materialize.MaterializeBuilder;
 import com.timehop.stickyheadersrecyclerview.StickyRecyclerHeadersDecoration;
@@ -47,6 +47,7 @@ public class StickyHeaderSampleActivity extends AppCompatActivity {
 
         //create our FastAdapter
         fastAdapter = new FastAdapter();
+        fastAdapter.withSelectable(true);
 
         //create our adapters
         final StickyHeaderAdapter stickyHeaderAdapter = new StickyHeaderAdapter();

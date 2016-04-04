@@ -71,13 +71,14 @@ public class MultiselectSampleActivity extends AppCompatActivity {
         //configure our mFastAdapter
         //as we provide id's for the items we want the hasStableIds enabled to speed up things
         mFastAdapter.setHasStableIds(true);
+        mFastAdapter.withSelectable(true);
         mFastAdapter.withMultiSelect(true);
         mFastAdapter.withSelectOnLongClick(true);
         mFastAdapter.withOnPreClickListener(new FastAdapter.OnClickListener<SampleItem>() {
             @Override
             public boolean onClick(View v, IAdapter<SampleItem> adapter, SampleItem item, int position) {
                 //we handle the default onClick behavior for the actionMode. This will return null if it didn't do anything and you can handle a normal onClick
-                Boolean res = mActionModeHelper.onClick(item, position);
+                Boolean res = mActionModeHelper.onClick(item);
                 return res != null ? res : false;
             }
         });
@@ -156,7 +157,9 @@ public class MultiselectSampleActivity extends AppCompatActivity {
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
             mUndoHelper.remove(findViewById(android.R.id.content), "Item removed", "Undo", Snackbar.LENGTH_LONG, mFastAdapter.getSelections());
-            //return true as we consumed the event
+            //as we no longer have a selection so the actionMode can be finished
+            mode.finish();
+            //we consume the event
             return true;
         }
 

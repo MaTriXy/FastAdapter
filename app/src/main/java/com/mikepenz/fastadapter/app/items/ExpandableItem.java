@@ -9,6 +9,8 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.mikepenz.fastadapter.FastAdapter;
+import com.mikepenz.fastadapter.IAdapter;
 import com.mikepenz.fastadapter.IExpandable;
 import com.mikepenz.fastadapter.IItem;
 import com.mikepenz.fastadapter.app.R;
@@ -68,8 +70,8 @@ public class ExpandableItem extends AbstractItem<ExpandableItem, ExpandableItem.
     }
 
     @Override
-    public ExpandableItem withIsExpanded(boolean expaned) {
-        mExpanded = expaned;
+    public ExpandableItem withIsExpanded(boolean expanded) {
+        mExpanded = expanded;
         return this;
     }
 
@@ -81,6 +83,38 @@ public class ExpandableItem extends AbstractItem<ExpandableItem, ExpandableItem.
     public ExpandableItem withSubItems(List<IItem> subItems) {
         this.mSubItems = subItems;
         return this;
+    }
+
+    //we define a clickListener in here so we can directly animate
+    final private FastAdapter.OnClickListener<ExpandableItem> onClickListener = new FastAdapter.OnClickListener<ExpandableItem>() {
+        @Override
+        public boolean onClick(View v, IAdapter adapter, ExpandableItem item, int position) {
+            if (item.getSubItems() != null) {
+                if (!item.isExpanded()) {
+                    ViewCompat.animate(v.findViewById(R.id.material_drawer_icon)).rotation(180).start();
+                } else {
+                    ViewCompat.animate(v.findViewById(R.id.material_drawer_icon)).rotation(0).start();
+                }
+                return true;
+            }
+            return false;
+        }
+    };
+
+    /**
+     * we overwrite the item specific click listener so we can automatically animate within the item
+     *
+     * @return
+     */
+    @Override
+    public FastAdapter.OnClickListener<ExpandableItem> getOnItemClickListener() {
+        return onClickListener;
+    }
+
+    @Override
+    public boolean isSelectable() {
+        //this might not be true for your application
+        return getSubItems() == null;
     }
 
     /**
@@ -158,7 +192,7 @@ public class ExpandableItem extends AbstractItem<ExpandableItem, ExpandableItem.
      * our ViewHolder
      */
     protected static class ViewHolder extends RecyclerView.ViewHolder {
-        protected View view;
+        protected final View view;
         @Bind(R.id.material_drawer_name)
         TextView name;
         @Bind(R.id.material_drawer_description)

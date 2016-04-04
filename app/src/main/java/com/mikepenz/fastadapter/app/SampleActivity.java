@@ -18,7 +18,6 @@ import com.mikepenz.aboutlibraries.Libs;
 import com.mikepenz.aboutlibraries.LibsBuilder;
 import com.mikepenz.community_material_typeface_library.CommunityMaterial;
 import com.mikepenz.fastadapter.FastAdapter;
-import com.mikepenz.fastadapter.IItem;
 import com.mikepenz.fastadapter.adapters.ItemAdapter;
 import com.mikepenz.fastadapter.app.dummy.ImageDummyData;
 import com.mikepenz.fastadapter.app.items.SimpleImageItem;
@@ -35,10 +34,10 @@ import java.util.List;
 
 public class SampleActivity extends AppCompatActivity {
 
-    //save our header or result
-    private Drawer mResult = null;
     //our rv
     RecyclerView mRecyclerView;
+    //save our header or result
+    private Drawer mResult = null;
     //save our FastAdapter
     private FastAdapter<SimpleImageItem> mFastAdapter;
     //save our FastAdapter
@@ -76,6 +75,8 @@ public class SampleActivity extends AppCompatActivity {
                         new PrimaryDrawerItem().withName(R.string.sample_checkbox_item).withDescription(R.string.sample_checkbox_item_descr).withSelectable(false).withIdentifier(10).withIcon(CommunityMaterial.Icon.cmd_checkbox_marked),
                         new PrimaryDrawerItem().withName(R.string.sample_radiobutton_item).withDescription(R.string.sample_radiobutton_item_descr).withSelectable(false).withIdentifier(11).withIcon(CommunityMaterial.Icon.cmd_radiobox_marked),
                         new PrimaryDrawerItem().withName(R.string.sample_swipe_list).withDescription(R.string.sample_swipe_list_descr).withSelectable(false).withIdentifier(12).withIcon(MaterialDesignIconic.Icon.gmi_format_align_left),
+                        new PrimaryDrawerItem().withName(R.string.sample_endless_scroll_list).withDescription(R.string.sample_endless_scroll_list_descr).withSelectable(false).withIdentifier(13).withIcon(MaterialDesignIconic.Icon.gmi_long_arrow_down),
+                        new PrimaryDrawerItem().withName(R.string.sample_sort).withDescription(R.string.sample_sort_descr).withSelectable(false).withIdentifier(14).withIcon(MaterialDesignIconic.Icon.gmi_sort_by_alpha),
                         new DividerDrawerItem(),
                         new PrimaryDrawerItem().withName(R.string.open_source).withSelectable(false).withIdentifier(100).withIcon(MaterialDesignIconic.Icon.gmi_github)
                 )
@@ -108,6 +109,10 @@ public class SampleActivity extends AppCompatActivity {
                                 intent = new Intent(SampleActivity.this, RadioButtonSampleActivity.class);
                             } else if (drawerItem.getIdentifier() == 12) {
                                 intent = new Intent(SampleActivity.this, SwipeListActivity.class);
+                            } else if (drawerItem.getIdentifier() == 13) {
+                                intent = new Intent(SampleActivity.this, EndlessScrollListActivity.class);
+                            } else if (drawerItem.getIdentifier() == 14) {
+                                intent = new Intent(SampleActivity.this, SortActivity.class);
                             } else if (drawerItem.getIdentifier() == 100) {
                                 intent = new LibsBuilder()
                                         .withFields(R.string.class.getFields())
@@ -130,6 +135,7 @@ public class SampleActivity extends AppCompatActivity {
 
         //create our FastAdapter which will manage everything
         mFastAdapter = new FastAdapter<>();
+        mFastAdapter.withSelectable(true);
         mFastAdapter.withMultiSelect(true);
         mFastAdapter.withSelectOnLongClick(false);
         //create our ItemAdapter which will host our items
@@ -200,10 +206,7 @@ public class SampleActivity extends AppCompatActivity {
             case R.id.item_move:
                 List items = mItemAdapter.getAdapterItems();
                 if (items.size() > position + 3) {
-                    IItem i = (IItem) items.get(position + 1);
-                    items.remove(position + 1);
-                    items.add(position + 3, i);
-                    mFastAdapter.notifyAdapterItemMoved(position + 1, position + 3);
+                    mItemAdapter.move(position + 1, position + 3);
                 }
                 return true;
             case R.id.item_delete:
