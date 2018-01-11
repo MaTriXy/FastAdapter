@@ -2,29 +2,35 @@ package com.mikepenz.fastadapter.app.items;
 
 import android.content.Context;
 import android.os.Build;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewPropertyAnimator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.mikepenz.fastadapter.FastAdapter;
 import com.mikepenz.fastadapter.app.R;
+import com.mikepenz.fastadapter.utils.EventHookUtil;
 import com.mikepenz.fastadapter.items.AbstractItem;
-import com.mikepenz.fastadapter.utils.ViewHolderFactory;
+import com.mikepenz.fastadapter.listeners.ClickEventHook;
 import com.mikepenz.iconics.view.IconicsImageView;
 
-import butterknife.Bind;
+import java.util.List;
+
+import butterknife.BindView;
 import butterknife.ButterKnife;
 
 /**
  * Created by mikepenz on 28.12.15.
  */
 public class ImageItem extends AbstractItem<ImageItem, ImageItem.ViewHolder> {
-    //the static ViewHolderFactory which will be used to generate the ViewHolder for this Item
-    private static final ViewHolderFactory<? extends ViewHolder> FACTORY = new ItemFactory();
 
     public String mImageUrl;
     public String mName;
@@ -77,8 +83,8 @@ public class ImageItem extends AbstractItem<ImageItem, ImageItem.ViewHolder> {
      * @param viewHolder the viewHolder of this item
      */
     @Override
-    public void bindView(ViewHolder viewHolder) {
-        super.bindView(viewHolder);
+    public void bindView(ViewHolder viewHolder, List<Object> payloads) {
+        super.bindView(viewHolder, payloads);
 
         //get the context
         Context ctx = viewHolder.itemView.getContext();
@@ -93,19 +99,19 @@ public class ImageItem extends AbstractItem<ImageItem, ImageItem.ViewHolder> {
         style(viewHolder.imageLovedOff, mStarred ? 0 : 1);
 
         //load glide
-        Glide.clear(viewHolder.imageView);
         Glide.with(ctx).load(mImageUrl).animate(R.anim.alpha_on).into(viewHolder.imageView);
     }
 
-    /**
-     * our ItemFactory implementation which creates the ViewHolder for our adapter.
-     * It is highly recommended to implement a ViewHolderFactory as it is 0-1ms faster for ViewHolder creation,
-     * and it is also many many times more efficient if you define custom listeners on views within your item.
-     */
-    protected static class ItemFactory implements ViewHolderFactory<ViewHolder> {
-        public ViewHolder create(View v) {
-            return new ViewHolder(v);
-        }
+    @Override
+    public void unbindView(ViewHolder holder) {
+        super.unbindView(holder);
+        Glide.clear(holder.imageView);
+        holder.imageView.setImageDrawable(null);
+    }
+
+    @Override
+    public ViewHolder getViewHolder(View v) {
+        return new ViewHolder(v);
     }
 
     /**
@@ -149,31 +155,21 @@ public class ImageItem extends AbstractItem<ImageItem, ImageItem.ViewHolder> {
     }
 
     /**
-     * return our ViewHolderFactory implementation here
-     *
-     * @return
-     */
-    @Override
-    public ViewHolderFactory<? extends ViewHolder> getFactory() {
-        return FACTORY;
-    }
-
-    /**
      * our ViewHolder
      */
     public static class ViewHolder extends RecyclerView.ViewHolder {
         protected View view;
-        @Bind(R.id.item_image_img)
+        @BindView(R.id.item_image_img)
         protected ImageView imageView;
-        @Bind(R.id.item_image_name)
+        @BindView(R.id.item_image_name)
         protected TextView imageName;
-        @Bind(R.id.item_image_description)
+        @BindView(R.id.item_image_description)
         protected TextView imageDescription;
-        @Bind(R.id.item_image_loved_container)
+        @BindView(R.id.item_image_loved_container)
         public RelativeLayout imageLovedContainer;
-        @Bind(R.id.item_image_loved_yes)
+        @BindView(R.id.item_image_loved_yes)
         protected IconicsImageView imageLovedOn;
-        @Bind(R.id.item_image_loved_no)
+        @BindView(R.id.item_image_loved_no)
         protected IconicsImageView imageLovedOff;
 
         public ViewHolder(View view) {
@@ -195,10 +191,24 @@ public class ImageItem extends AbstractItem<ImageItem, ImageItem.ViewHolder> {
         }
     }
 
-    /**
-     * our listener which is triggered when the heart is clicked
-     */
-    public interface OnItemClickListener {
-        void onLovedClick(String image, boolean starred);
+    public static class ImageItemHeartClickEvent extends ClickEventHook<ImageItem> {
+        @Nullable
+        @Override
+        public List<View> onBindMany(@NonNull RecyclerView.ViewHolder viewHolder) {
+            if (viewHolder instanceof ImageItem.ViewHolder) {
+                return EventHookUtil.toList(((ViewHolder) viewHolder).imageLovedContainer);
+            }
+            return super.onBindMany(viewHolder);
+        }
+
+        @Override
+        public void onClick(View v, int position, FastAdapter<ImageItem> fastAdapter, ImageItem item) {
+            item.withStarred(!item.mStarred);
+            //we animate the heart
+            item.animateHeart(((ViewGroup) v).getChildAt(0), ((ViewGroup) v).getChildAt(1), item.mStarred);
+
+            //we display the info about the click
+            Toast.makeText(v.getContext(), item.mImageUrl + " - " + item.mStarred, Toast.LENGTH_SHORT).show();
+        }
     }
 }

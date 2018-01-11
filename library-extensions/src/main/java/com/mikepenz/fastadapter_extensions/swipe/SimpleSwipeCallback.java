@@ -5,12 +5,13 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.support.annotation.ColorInt;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
-import android.view.animation.TranslateAnimation;
+
+import com.mikepenz.fastadapter.FastAdapter;
+import com.mikepenz.fastadapter.IItem;
 
 
 /**
@@ -57,13 +58,13 @@ public class SimpleSwipeCallback extends ItemTouchHelper.SimpleCallback {
 
     public SimpleSwipeCallback withLeaveBehindSwipeLeft(Drawable d) {
         this.leaveBehindDrawableLeft = d;
-        setDefaultSwipeDirs(getSwipeDirs(null, null) | ItemTouchHelper.LEFT);
+        setDefaultSwipeDirs(super.getSwipeDirs(null, null) | ItemTouchHelper.LEFT);
         return this;
     }
 
     public SimpleSwipeCallback withLeaveBehindSwipeRight(Drawable d) {
         this.leaveBehindDrawableRight = d;
-        setDefaultSwipeDirs(getSwipeDirs(null, null) | ItemTouchHelper.RIGHT);
+        setDefaultSwipeDirs(super.getSwipeDirs(null, null) | ItemTouchHelper.RIGHT);
         return this;
     }
 
@@ -88,21 +89,22 @@ public class SimpleSwipeCallback extends ItemTouchHelper.SimpleCallback {
 
     @Override
     public int getSwipeDirs(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
-        //TODO should disallow this if in swiped state
-        return super.getSwipeDirs(recyclerView, viewHolder);
+        IItem item = FastAdapter.getHolderAdapterItem(viewHolder);
+        if (item instanceof ISwipeable) {
+            if (((ISwipeable) item).isSwipeable()) {
+                return super.getSwipeDirs(recyclerView, viewHolder);
+            } else {
+                return 0;
+            }
+        } else {
+            return super.getSwipeDirs(recyclerView, viewHolder);
+        }
     }
 
     @Override
     public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            viewHolder.itemView.setTranslationX(0);
-            viewHolder.itemView.setTranslationY(0);
-        } else {
-            TranslateAnimation anim = new TranslateAnimation(0, 0, 0, 0);
-            anim.setFillAfter(true);
-            anim.setDuration(0);
-            viewHolder.itemView.startAnimation(anim);
-        }
+        viewHolder.itemView.setTranslationX(0);
+        viewHolder.itemView.setTranslationY(0);
         int position = viewHolder.getAdapterPosition();
         if (position != RecyclerView.NO_POSITION) {
             itemSwipeCallback.itemSwiped(position, direction);

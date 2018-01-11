@@ -8,6 +8,10 @@ FastAdapter contributors (sorted alphabeticaly)
   * Add additional tests
   * Add `FastAdapterDialog`
   * Add additional default `Items`
+  
+* **[MFlisar](https://github.com/MFlisar)**
+
+  * Improvements to the Expandable / SubItems implementation
 
 * **[Mattias Isegran Bergander](https://github.com/mattiasbe)**
 
@@ -25,6 +29,10 @@ FastAdapter contributors (sorted alphabeticaly)
 * **[Shubham Chaudhary](https://github.com/shubhamchaudhary)**
   
   * Basic Unit-Tests
+
+* **[Alireza](https://github.com/meNESS)**
+ 
+  * EndlessRecyclerOnTopScrollListener
 
 * **[jasonsparc](https://github.com/jasonsparc)**
 

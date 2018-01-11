@@ -1,13 +1,18 @@
 package com.mikepenz.fastadapter;
 
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
 
 import com.mikepenz.fastadapter.adapters.ItemAdapter;
+import com.mikepenz.fastadapter.listeners.OnBindViewHolderListener;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricGradleTestRunner;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -25,9 +30,9 @@ public class FastAdapterTest {
 
     @Before
     public void setUp() throws Exception {
-        adapter = new FastAdapter<>();
         itemAdapter = new ItemAdapter<>();
-        itemAdapter.wrap(adapter);
+        adapter = FastAdapter.with(itemAdapter);
+        //adapter.withPositionBasedStateManagement(true);
     }
 
     @Test
@@ -44,6 +49,98 @@ public class FastAdapterTest {
     public void withSelectable() throws Exception {
         assertThat(adapter.withSelectable(true).isSelectable()).isTrue();
         assertThat(adapter.withSelectable(false).isSelectable()).isFalse();
+    }
+
+    @Test
+    public void select() throws Exception {
+        adapter.withSelectable(true);
+        itemAdapter.set(TestDataGenerator.genTestItemList(100));
+
+        assertThat(adapter.getSelectedItems().size()).isEqualTo(0);
+        assertThat(adapter.getSelections().size()).isEqualTo(0);
+
+        adapter.select(10);
+
+        assertThat(adapter.getSelectedItems().size()).isEqualTo(1);
+        assertThat(adapter.getSelectedItems().iterator().next().getIdentifier()).isEqualTo(10);
+        assertThat(adapter.getSelections().size()).isEqualTo(1);
+        assertThat(adapter.getSelections().iterator().next()).isEqualTo(10);
+    }
+
+    @Test
+    public void getPosition() throws Exception {
+        TestItem testItem = TestDataGenerator.genTestItem(1);
+        itemAdapter.add(testItem);
+
+        assertThat(adapter.getPosition(testItem)).isEqualTo(0);
+    }
+
+    @Test
+    public void getItem() throws Exception {
+        List<TestItem> items = TestDataGenerator.genTestItemList(100);
+        TestItem item = items.get(40);
+        itemAdapter.set(items);
+
+        assertThat(adapter.getItem(40)).isEqualTo(item);
+    }
+
+    @Test
+    public void getRelativeInfo() throws Exception {
+        List<TestItem> items = TestDataGenerator.genTestItemList(100);
+        TestItem item = items.get(40);
+        itemAdapter.set(items);
+
+        assertThat(adapter.getRelativeInfo(40).item).isEqualTo(item);
+        assertThat(adapter.getRelativeInfo(40).adapter).isEqualTo(itemAdapter);
+        assertThat(adapter.getRelativeInfo(40).position).isEqualTo(40);
+    }
+
+    @Test
+    public void getAdapter() throws Exception {
+        List<TestItem> items = TestDataGenerator.genTestItemList(100);
+        itemAdapter.set(items);
+
+        assertThat(adapter.getAdapter(40)).isEqualTo(itemAdapter);
+    }
+
+    @Test
+    public void getItemViewType() throws Exception {
+        List<TestItem> items = TestDataGenerator.genTestItemList(100);
+        itemAdapter.set(items);
+
+        assertThat(adapter.getItemViewType(40)).isEqualTo(-1);
+    }
+
+    @Test
+    public void getItemId() throws Exception {
+        List<TestItem> items = TestDataGenerator.genTestItemList(100);
+        itemAdapter.set(items);
+
+        assertThat(adapter.getItemId(40)).isEqualTo(40);
+    }
+
+    @Test
+    public void getItemCount() throws Exception {
+        List<TestItem> items = TestDataGenerator.genTestItemList(100);
+        itemAdapter.set(items);
+
+        assertThat(adapter.getItemCount()).isEqualTo(100);
+    }
+
+    @Test
+    public void getPreItemCountByOrder() throws Exception {
+        List<TestItem> items = TestDataGenerator.genTestItemList(100);
+        itemAdapter.set(items);
+
+        assertThat(adapter.getPreItemCountByOrder(itemAdapter.getOrder())).isEqualTo(0);
+    }
+
+    @Test
+    public void getPreItemCount() throws Exception {
+        List<TestItem> items = TestDataGenerator.genTestItemList(100);
+        itemAdapter.set(items);
+
+        assertThat(adapter.getPreItemCount(40)).isEqualTo(0);
     }
 
     @Test
@@ -79,12 +176,12 @@ public class FastAdapterTest {
 
     @Test
     public void withBindViewHolderListener_OnBindViewHolder_Callback() throws Exception {
-        FastAdapter.OnBindViewHolderListener listener = mock(FastAdapter.OnBindViewHolderListener.class);
-        RecyclerView.ViewHolder holder = mock(RecyclerView.ViewHolder.class);
+        OnBindViewHolderListener listener = mock(OnBindViewHolderListener.class);
+        RecyclerView.ViewHolder holder = new RecyclerView.ViewHolder(mock(View.class)) {};
         adapter.withOnBindViewHolderListener(listener);
 
-        adapter.onBindViewHolder(holder, 10);
+        adapter.onBindViewHolder(holder, 10, new ArrayList());
 
-        verify(listener, only()).onBindViewHolder(holder, 10);
+        verify(listener, only()).onBindViewHolder(holder, 10, new ArrayList());
     }
 }

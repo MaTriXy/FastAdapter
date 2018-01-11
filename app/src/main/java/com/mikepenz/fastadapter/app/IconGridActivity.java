@@ -10,9 +10,10 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.mikepenz.fastadapter.IItem;
-import com.mikepenz.fastadapter.adapters.FastItemAdapter;
-import com.mikepenz.fastadapter.app.items.ExpandableItem;
+import com.mikepenz.fastadapter.commons.adapters.FastItemAdapter;
 import com.mikepenz.fastadapter.app.items.IconItem;
+import com.mikepenz.fastadapter.app.items.expandable.SimpleSubExpandableItem;
+import com.mikepenz.fastadapter.expandable.ExpandableExtension;
 import com.mikepenz.iconics.Iconics;
 import com.mikepenz.iconics.context.IconicsLayoutInflater;
 import com.mikepenz.iconics.typeface.ITypeface;
@@ -49,6 +50,10 @@ public class IconGridActivity extends AppCompatActivity {
         //create our FastAdapter which will manage everything
         fastItemAdapter = new FastItemAdapter();
 
+        //we want to have expandables
+        ExpandableExtension expandableExtension = new ExpandableExtension();
+        fastItemAdapter.addExtension(expandableExtension);
+
         //get our recyclerView and do basic setup
         RecyclerView rv = (RecyclerView) findViewById(R.id.rv);
 
@@ -82,27 +87,38 @@ public class IconGridActivity extends AppCompatActivity {
         });
 
         //add all icons of all registered Fonts to the list
-        ArrayList<ExpandableItem> items = new ArrayList<>(Iconics.getRegisteredFonts(this).size());
+        int count = 0;
+        ArrayList<SimpleSubExpandableItem> items = new ArrayList<>(Iconics.getRegisteredFonts(this).size());
         for (ITypeface font : mFonts) {
-            ExpandableItem expandableItem = new ExpandableItem().withName(font.getFontName());
+            //we set the identifier from the count here, as I need a stable ID in the sample to showcase the state restore
+            SimpleSubExpandableItem expandableItem = new SimpleSubExpandableItem();
+            expandableItem
+                    .withName(font.getFontName())
+                    .withIdentifier(count);
 
             ArrayList<IItem> icons = new ArrayList<>();
             for (String icon : font.getIcons()) {
-                icons.add(new IconItem().withIcon(font.getIcon(icon)));
+                IconItem iconItem = new IconItem();
+                iconItem.withIcon(font.getIcon(icon));
+                icons.add(iconItem);
             }
             expandableItem.withSubItems(icons);
 
             items.add(expandableItem);
+            count++;
         }
 
         //fill with some sample data
         fastItemAdapter.add(items);
 
-        //expand one item to make sample look a bit more interesting
-        fastItemAdapter.expand(2);
-
-        //restore selections (this has to be done after the items were added
-        fastItemAdapter.withSavedInstanceState(savedInstanceState);
+        //if first start we want to expand the item with ID 2
+        if (savedInstanceState != null) {
+            //restore selections (this has to be done after the items were added
+            fastItemAdapter.withSavedInstanceState(savedInstanceState);
+        } else {
+            //expand one item to make sample look a bit more interesting
+            expandableExtension.expand(2);
+        }
 
         //set the back arrow in the toolbar
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -111,7 +127,7 @@ public class IconGridActivity extends AppCompatActivity {
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        //add the values which need to be saved from the adapter to the bundel
+        //add the values which need to be saved from the adapter to the bundle
         outState = fastItemAdapter.saveInstanceState(outState);
         super.onSaveInstanceState(outState);
     }

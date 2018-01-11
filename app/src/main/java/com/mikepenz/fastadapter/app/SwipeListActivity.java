@@ -19,21 +19,21 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
-import com.mikepenz.fastadapter.FastAdapter;
 import com.mikepenz.fastadapter.IAdapter;
 import com.mikepenz.fastadapter.IItemAdapter;
-import com.mikepenz.fastadapter.adapters.FastItemAdapter;
 import com.mikepenz.fastadapter.app.items.SwipeableItem;
+import com.mikepenz.fastadapter.commons.adapters.FastItemAdapter;
+import com.mikepenz.fastadapter.listeners.OnClickListener;
 import com.mikepenz.fastadapter_extensions.drag.ItemTouchCallback;
 import com.mikepenz.fastadapter_extensions.drag.SimpleDragCallback;
 import com.mikepenz.fastadapter_extensions.swipe.SimpleSwipeCallback;
 import com.mikepenz.fastadapter_extensions.swipe.SimpleSwipeDragCallback;
+import com.mikepenz.fastadapter_extensions.utilities.DragDropUtil;
 import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.material_design_iconic_typeface_library.MaterialDesignIconic;
 import com.mikepenz.materialize.MaterializeBuilder;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -65,7 +65,7 @@ public class SwipeListActivity extends AppCompatActivity implements ItemTouchCal
         fastItemAdapter = new FastItemAdapter<>();
 
         //configure our fastAdapter
-        fastItemAdapter.withOnClickListener(new FastAdapter.OnClickListener<SwipeableItem>() {
+        fastItemAdapter.withOnClickListener(new OnClickListener<SwipeableItem>() {
             @Override
             public boolean onClick(View v, IAdapter<SwipeableItem> adapter, SwipeableItem item, int position) {
                 Toast.makeText(v.getContext(), (item).name.getText(v.getContext()), Toast.LENGTH_LONG).show();
@@ -74,12 +74,12 @@ public class SwipeListActivity extends AppCompatActivity implements ItemTouchCal
         });
 
         //configure the itemAdapter
-        fastItemAdapter.withFilterPredicate(new IItemAdapter.Predicate<SwipeableItem>() {
+        fastItemAdapter.getItemFilter().withFilterPredicate(new IItemAdapter.Predicate<SwipeableItem>() {
             @Override
             public boolean filter(SwipeableItem item, CharSequence constraint) {
                 //return true if we should filter it out
                 //return false to keep it
-                return !item.name.getText().toLowerCase().contains(constraint.toString().toLowerCase());
+                return item.name.getText().toString().toLowerCase().contains(constraint.toString().toLowerCase());
             }
         });
 
@@ -95,7 +95,10 @@ public class SwipeListActivity extends AppCompatActivity implements ItemTouchCal
         for (String s : ALPHABET) {
             int count = new Random().nextInt(20);
             for (int i = 1; i <= count; i++) {
-                items.add(new SwipeableItem().withName(s + " Test " + x).withIdentifier(100 + x));
+                SwipeableItem swipeableItem = new SwipeableItem().withName(s + " Test " + x).withIdentifier(100 + x);
+                swipeableItem.withIsSwipeable(i % 5 != 0);
+                swipeableItem.withIsDraggable(i % 5 != 0);
+                items.add(swipeableItem);
                 x++;
             }
         }
@@ -160,6 +163,10 @@ public class SwipeListActivity extends AppCompatActivity implements ItemTouchCal
         // Inflate the menu items for use in the action bar
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.search, menu);
+
+        //search icon
+        menu.findItem(R.id.search).setIcon(new IconicsDrawable(this, MaterialDesignIconic.Icon.gmi_search).color(Color.BLACK).actionBar());
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             final SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
             searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -187,9 +194,13 @@ public class SwipeListActivity extends AppCompatActivity implements ItemTouchCal
 
     @Override
     public boolean itemTouchOnMove(int oldPosition, int newPosition) {
-        Collections.swap(fastItemAdapter.getAdapterItems(), oldPosition, newPosition); // change position
-        fastItemAdapter.notifyAdapterItemMoved(oldPosition, newPosition);
+        DragDropUtil.onMove(fastItemAdapter.getItemAdapter(), oldPosition, newPosition);  // change position
         return true;
+    }
+
+    @Override
+    public void itemTouchDropped(int oldPosition, int newPosition) {
+        // save the new item order, i.e. in your database
     }
 
     @Override
@@ -212,7 +223,8 @@ public class SwipeListActivity extends AppCompatActivity implements ItemTouchCal
                 item.setSwipedAction(null);
                 int position = fastItemAdapter.getAdapterPosition(item);
                 if (position != RecyclerView.NO_POSITION) {
-                    fastItemAdapter.remove(position);
+                    //this sample uses a filter. If a filter is used we should use the methods provided by the filter (to make sure filter and normal state is updated)
+                    fastItemAdapter.getItemFilter().remove(position);
                 }
             }
         };

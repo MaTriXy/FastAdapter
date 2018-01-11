@@ -9,18 +9,18 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.mikepenz.fastadapter.commons.utils.FastAdapterUIUtils;
 import com.mikepenz.fastadapter.items.AbstractItem;
-import com.mikepenz.fastadapter.utils.ViewHolderFactory;
 import com.mikepenz.library_extensions.R;
 import com.mikepenz.materialize.holder.ImageHolder;
 import com.mikepenz.materialize.holder.StringHolder;
+
+import java.util.List;
 
 /**
  * Created by fabianterhorst on 30.03.16.
  */
 public class SingleLineItem extends AbstractItem<SingleLineItem, SingleLineItem.ViewHolder> {
-
-    private static final ViewHolderFactory<? extends ViewHolder> FACTORY = new ItemFactory();
 
     private StringHolder mName;
 
@@ -104,36 +104,28 @@ public class SingleLineItem extends AbstractItem<SingleLineItem, SingleLineItem.
     }
 
     @Override
-    public void bindView(ViewHolder holder) {
-        super.bindView(holder);
+    public void bindView(ViewHolder holder, List<Object> payloads) {
+        super.bindView(holder, payloads);
+        if (isEnabled()) {
+            holder.itemView.setBackgroundResource(FastAdapterUIUtils.getSelectableBackground(holder.itemView.getContext()));
+        }
         mName.applyTo(holder.name);
-        if (mAvatar != null) {
-            if (holder.avatar.getVisibility() == View.GONE) {
-                holder.avatar.setVisibility(View.VISIBLE);
-            }
-            mAvatar.applyTo(holder.avatar);
-        } else if (holder.avatar.getVisibility() == View.VISIBLE) {
-            holder.avatar.setVisibility(View.GONE);
-        }
-        if (mIcon != null) {
-            if (holder.icon.getVisibility() == View.GONE) {
-                holder.icon.setVisibility(View.VISIBLE);
-            }
-            mIcon.applyTo(holder.icon);
-        } else if (holder.icon.getVisibility() == View.VISIBLE) {
-            holder.icon.setVisibility(View.GONE);
-        }
-    }
-
-    protected static class ItemFactory implements ViewHolderFactory<ViewHolder> {
-        public ViewHolder create(View v) {
-            return new ViewHolder(v);
-        }
+        ImageHolder.applyToOrSetGone(mAvatar, holder.avatar);
+        ImageHolder.applyToOrSetGone(mIcon, holder.icon);
     }
 
     @Override
-    public ViewHolderFactory<? extends ViewHolder> getFactory() {
-        return FACTORY;
+    public void unbindView(ViewHolder holder) {
+        holder.name.setText(null);
+        holder.avatar.setImageDrawable(null);
+        holder.avatar.setVisibility(View.VISIBLE);
+        holder.icon.setImageDrawable(null);
+        holder.icon.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public ViewHolder getViewHolder(View v) {
+        return new ViewHolder(v);
     }
 
     protected static class ViewHolder extends RecyclerView.ViewHolder {

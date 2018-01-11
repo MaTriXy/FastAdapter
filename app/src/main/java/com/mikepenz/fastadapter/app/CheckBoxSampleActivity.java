@@ -8,14 +8,12 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.mikepenz.fastadapter.FastAdapter;
 import com.mikepenz.fastadapter.IAdapter;
-import com.mikepenz.fastadapter.adapters.FastItemAdapter;
 import com.mikepenz.fastadapter.app.items.CheckBoxSampleItem;
-import com.mikepenz.fastadapter.helpers.ClickListenerHelper;
+import com.mikepenz.fastadapter.commons.adapters.FastItemAdapter;
+import com.mikepenz.fastadapter.listeners.OnClickListener;
 import com.mikepenz.materialize.MaterializeBuilder;
 
 import java.util.ArrayList;
@@ -27,8 +25,6 @@ public class CheckBoxSampleActivity extends AppCompatActivity {
 
     //save our FastAdapter
     private FastItemAdapter<CheckBoxSampleItem> fastItemAdapter;
-
-    private ClickListenerHelper<CheckBoxSampleItem> mClickListenerHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +45,7 @@ public class CheckBoxSampleActivity extends AppCompatActivity {
         fastItemAdapter.withSelectable(true);
 
         //configure our fastAdapter
-        fastItemAdapter.withOnClickListener(new FastAdapter.OnClickListener<CheckBoxSampleItem>() {
+        fastItemAdapter.withOnClickListener(new OnClickListener<CheckBoxSampleItem>() {
             @Override
             public boolean onClick(View v, IAdapter<CheckBoxSampleItem> adapter, CheckBoxSampleItem item, int position) {
                 Toast.makeText(v.getContext(), (item).name.getText(v.getContext()), Toast.LENGTH_LONG).show();
@@ -57,34 +53,14 @@ public class CheckBoxSampleActivity extends AppCompatActivity {
             }
         });
 
-        //init the ClickListenerHelper which simplifies custom click listeners on views of the Adapter
-        mClickListenerHelper = new ClickListenerHelper<>(fastItemAdapter);
-
-        fastItemAdapter.withOnPreClickListener(new FastAdapter.OnClickListener<CheckBoxSampleItem>() {
+        fastItemAdapter.withOnPreClickListener(new OnClickListener<CheckBoxSampleItem>() {
             @Override
             public boolean onClick(View v, IAdapter<CheckBoxSampleItem> adapter, CheckBoxSampleItem item, int position) {
                 // consume otherwise radio/checkbox will be deselected
                 return true;
             }
         });
-
-        fastItemAdapter.withOnCreateViewHolderListener(new FastAdapter.OnCreateViewHolderListener() {
-            @Override
-            public RecyclerView.ViewHolder onPreCreateViewHolder(ViewGroup parent, int viewType) {
-                return fastItemAdapter.getTypeInstance(viewType).getViewHolder(parent);
-            }
-
-            @Override
-            public RecyclerView.ViewHolder onPostCreateViewHolder(final RecyclerView.ViewHolder viewHolder) {
-                mClickListenerHelper.listen(viewHolder, ((CheckBoxSampleItem.ViewHolder) viewHolder).checkBox, new ClickListenerHelper.OnClickListener<CheckBoxSampleItem>() {
-                    @Override
-                    public void onClick(View v, int position, CheckBoxSampleItem item) {
-                        fastItemAdapter.toggleSelection(position);
-                    }
-                });
-                return viewHolder;
-            }
-        });
+        fastItemAdapter.withEventHook(new CheckBoxSampleItem.CheckBoxClickEvent());
 
         //get our recyclerView and do basic setup
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.rv);
@@ -114,7 +90,7 @@ public class CheckBoxSampleActivity extends AppCompatActivity {
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        //add the values which need to be saved from the adapter to the bundel
+        //add the values which need to be saved from the adapter to the bundle
         outState = fastItemAdapter.saveInstanceState(outState);
         super.onSaveInstanceState(outState);
     }

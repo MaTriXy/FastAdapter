@@ -4,8 +4,11 @@ import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
+import com.mikepenz.fastadapter.adapters.ItemAdapter;
+
 public abstract class EndlessRecyclerOnScrollListener extends RecyclerView.OnScrollListener {
 
+    private boolean enabled = true;
     private int mPreviousTotal = 0;
     private boolean mLoading = true;
     private int mVisibleThreshold = -1;
@@ -14,11 +17,20 @@ public abstract class EndlessRecyclerOnScrollListener extends RecyclerView.OnScr
     private boolean mIsOrientationHelperVertical;
     private OrientationHelper mOrientationHelper;
 
-    private int mCurrentPage = 1;
+    private int mCurrentPage = 0;
+
+    private ItemAdapter mFooterAdapter;
 
     private RecyclerView.LayoutManager mLayoutManager;
 
     public EndlessRecyclerOnScrollListener() {
+    }
+
+    /**
+     * @param adapter the ItemAdapter used to host footer items
+     */
+    public EndlessRecyclerOnScrollListener(ItemAdapter adapter) {
+        this.mFooterAdapter = adapter;
     }
 
     public EndlessRecyclerOnScrollListener(RecyclerView.LayoutManager layoutManager) {
@@ -32,6 +44,17 @@ public abstract class EndlessRecyclerOnScrollListener extends RecyclerView.OnScr
     public EndlessRecyclerOnScrollListener(RecyclerView.LayoutManager layoutManager, int visibleThreshold) {
         this.mLayoutManager = layoutManager;
         this.mVisibleThreshold = visibleThreshold;
+    }
+
+    /**
+     * @param layoutManager
+     * @param visibleThreshold
+     * @param footerAdapter    the ItemAdapter used to host footer items
+     */
+    public EndlessRecyclerOnScrollListener(RecyclerView.LayoutManager layoutManager, int visibleThreshold, ItemAdapter footerAdapter) {
+        this.mLayoutManager = layoutManager;
+        this.mVisibleThreshold = visibleThreshold;
+        this.mFooterAdapter = footerAdapter;
     }
 
     private int findFirstVisibleItemPosition(RecyclerView recyclerView) {
@@ -82,31 +105,57 @@ public abstract class EndlessRecyclerOnScrollListener extends RecyclerView.OnScr
     @Override
     public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
         super.onScrolled(recyclerView, dx, dy);
-        if(mLayoutManager == null)
-            mLayoutManager = recyclerView.getLayoutManager();
 
-        if (mVisibleThreshold == -1)
-            mVisibleThreshold = findLastVisibleItemPosition(recyclerView) - findFirstVisibleItemPosition(recyclerView);
+        if (enabled) {
+            if (mLayoutManager == null)
+                mLayoutManager = recyclerView.getLayoutManager();
 
-        mVisibleItemCount = recyclerView.getChildCount();
-        mTotalItemCount = mLayoutManager.getItemCount();
-        mFirstVisibleItem = findFirstVisibleItemPosition(recyclerView);
+            int footerItemCount = mFooterAdapter != null ? mFooterAdapter.getAdapterItemCount() : 0;
 
-        if (mLoading) {
-            if (mTotalItemCount > mPreviousTotal) {
-                mLoading = false;
-                mPreviousTotal = mTotalItemCount;
+            if (mVisibleThreshold == -1)
+                mVisibleThreshold = findLastVisibleItemPosition(recyclerView) - findFirstVisibleItemPosition(recyclerView) - footerItemCount;
+
+            mVisibleItemCount = recyclerView.getChildCount() - footerItemCount;
+            mTotalItemCount = mLayoutManager.getItemCount() - footerItemCount;
+            mFirstVisibleItem = findFirstVisibleItemPosition(recyclerView);
+
+            if (mLoading) {
+                if (mTotalItemCount > mPreviousTotal) {
+                    mLoading = false;
+                    mPreviousTotal = mTotalItemCount;
+                }
+            }
+            if (!mLoading && (mTotalItemCount - mVisibleItemCount)
+                    <= (mFirstVisibleItem + mVisibleThreshold)) {
+
+                mCurrentPage++;
+
+                onLoadMore(mCurrentPage);
+
+                mLoading = true;
             }
         }
-        if (!mLoading && (mTotalItemCount - mVisibleItemCount)
-                <= (mFirstVisibleItem + mVisibleThreshold)) {
+    }
 
-            mCurrentPage++;
+    public EndlessRecyclerOnScrollListener enable() {
+        enabled = true;
+        return this;
+    }
 
-            onLoadMore(mCurrentPage);
+    public EndlessRecyclerOnScrollListener disable() {
+        enabled = false;
+        return this;
+    }
 
-            mLoading = true;
-        }
+    public void resetPageCount(int page) {
+        mPreviousTotal = 0;
+        mLoading = true;
+        mCurrentPage = page;
+        onLoadMore(mCurrentPage);
+    }
+
+    public void resetPageCount() {
+        resetPageCount(0);
     }
 
     public RecyclerView.LayoutManager getLayoutManager() {

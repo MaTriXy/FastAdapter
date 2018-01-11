@@ -1,2 +1,5 @@
-include ':app', ':library-extensions'
+include ':app'
+include ':library-core'
 include ':library'
+include ':library-extensions'
+include ':library-extensions-expandable'

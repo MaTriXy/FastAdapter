@@ -30,6 +30,7 @@ import com.mikepenz.materialdrawer.model.DividerDrawerItem;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class SampleActivity extends AppCompatActivity {
@@ -44,10 +45,11 @@ public class SampleActivity extends AppCompatActivity {
     private ItemAdapter<SimpleImageItem> mItemAdapter;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         findViewById(android.R.id.content).setSystemUiVisibility(findViewById(android.R.id.content).getSystemUiVisibility() | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         //create the activity
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
         // Handle Toolbar
@@ -70,13 +72,18 @@ public class SampleActivity extends AppCompatActivity {
                         new PrimaryDrawerItem().withName(R.string.sample_collapsible).withDescription(R.string.sample_collapsible_descr).withSelectable(false).withIdentifier(2).withIcon(MaterialDesignIconic.Icon.gmi_check_all),
                         new PrimaryDrawerItem().withName(R.string.sample_sticky_header).withDescription(R.string.sample_sticky_header_descr).withSelectable(false).withIdentifier(3).withIcon(MaterialDesignIconic.Icon.gmi_format_align_left),
                         new PrimaryDrawerItem().withName(R.string.sample_advanced).withDescription(R.string.sample_advanced_descr).withSelectable(false).withIdentifier(4).withIcon(MaterialDesignIconic.Icon.gmi_coffee),
-                        new PrimaryDrawerItem().withName(R.string.sample_generic_item).withDescription(R.string.sample_generic_item_descr).withSelectable(false).withIdentifier(7).withIcon(MaterialDesignIconic.Icon.gmi_font),
-                        new PrimaryDrawerItem().withName(R.string.sample_multi_generic_item).withDescription(R.string.sample_multi_generic_item_descr).withSelectable(false).withIdentifier(9).withIcon(MaterialDesignIconic.Icon.gmi_format_list_numbered),
+                        new PrimaryDrawerItem().withName(R.string.sample_model_item).withDescription(R.string.sample_model_item_descr).withSelectable(false).withIdentifier(7).withIcon(MaterialDesignIconic.Icon.gmi_font),
+                        new PrimaryDrawerItem().withName(R.string.sample_multi_model_item).withDescription(R.string.sample_multi_model_item_descr).withSelectable(false).withIdentifier(9).withIcon(MaterialDesignIconic.Icon.gmi_format_list_numbered),
                         new PrimaryDrawerItem().withName(R.string.sample_checkbox_item).withDescription(R.string.sample_checkbox_item_descr).withSelectable(false).withIdentifier(10).withIcon(CommunityMaterial.Icon.cmd_checkbox_marked),
                         new PrimaryDrawerItem().withName(R.string.sample_radiobutton_item).withDescription(R.string.sample_radiobutton_item_descr).withSelectable(false).withIdentifier(11).withIcon(CommunityMaterial.Icon.cmd_radiobox_marked),
                         new PrimaryDrawerItem().withName(R.string.sample_swipe_list).withDescription(R.string.sample_swipe_list_descr).withSelectable(false).withIdentifier(12).withIcon(MaterialDesignIconic.Icon.gmi_format_align_left),
                         new PrimaryDrawerItem().withName(R.string.sample_endless_scroll_list).withDescription(R.string.sample_endless_scroll_list_descr).withSelectable(false).withIdentifier(13).withIcon(MaterialDesignIconic.Icon.gmi_long_arrow_down),
                         new PrimaryDrawerItem().withName(R.string.sample_sort).withDescription(R.string.sample_sort_descr).withSelectable(false).withIdentifier(14).withIcon(MaterialDesignIconic.Icon.gmi_sort_by_alpha),
+                        new PrimaryDrawerItem().withName(R.string.sample_mopub).withDescription(R.string.sample_mopub_descr).withSelectable(false).withIdentifier(15).withIcon(MaterialDesignIconic.Icon.gmi_accounts_list),
+                        new PrimaryDrawerItem().withName(R.string.sample_realm_list).withDescription(R.string.sample_realm_list_descr).withSelectable(false).withIdentifier(16).withIcon(MaterialDesignIconic.Icon.gmi_format_color_text),
+                        new PrimaryDrawerItem().withName(R.string.sample_collapsible_multi_select_delete).withDescription(R.string.sample_collapsible_multi_select_delete_descr).withSelectable(false).withIdentifier(17).withIcon(MaterialDesignIconic.Icon.gmi_check_all),
+                        new PrimaryDrawerItem().withName(R.string.sample_sticky_header_mopub).withDescription(R.string.sample_sticky_header_mopub_descr).withSelectable(false).withIdentifier(18).withIcon(MaterialDesignIconic.Icon.gmi_accounts_list),
+                        new PrimaryDrawerItem().withName(R.string.sample_diff_util).withDescription(R.string.sample_diff_util_descr).withSelectable(false).withIdentifier(19).withIcon(MaterialDesignIconic.Icon.gmi_refresh),
                         new DividerDrawerItem(),
                         new PrimaryDrawerItem().withName(R.string.open_source).withSelectable(false).withIdentifier(100).withIcon(MaterialDesignIconic.Icon.gmi_github)
                 )
@@ -98,11 +105,11 @@ public class SampleActivity extends AppCompatActivity {
                             } else if (drawerItem.getIdentifier() == 6) {
                                 intent = new Intent(SampleActivity.this, SimpleItemListActivity.class);
                             } else if (drawerItem.getIdentifier() == 7) {
-                                intent = new Intent(SampleActivity.this, GenericItemActivity.class);
+                                intent = new Intent(SampleActivity.this, ModelItemActivity.class);
                             } else if (drawerItem.getIdentifier() == 8) {
                                 intent = new Intent(SampleActivity.this, IconGridActivity.class);
                             } else if (drawerItem.getIdentifier() == 9) {
-                                intent = new Intent(SampleActivity.this, MultiTypeGenericItemActivity.class);
+                                intent = new Intent(SampleActivity.this, MultiTypeModelItemActivity.class);
                             } else if (drawerItem.getIdentifier() == 10) {
                                 intent = new Intent(SampleActivity.this, CheckBoxSampleActivity.class);
                             } else if (drawerItem.getIdentifier() == 11) {
@@ -113,6 +120,16 @@ public class SampleActivity extends AppCompatActivity {
                                 intent = new Intent(SampleActivity.this, EndlessScrollListActivity.class);
                             } else if (drawerItem.getIdentifier() == 14) {
                                 intent = new Intent(SampleActivity.this, SortActivity.class);
+                            } else if (drawerItem.getIdentifier() == 15) {
+                                intent = new Intent(SampleActivity.this, MopubAdsActivity.class);
+                            } else if (drawerItem.getIdentifier() == 16) {
+                                intent = new Intent(SampleActivity.this, RealmActivity.class);
+                            } else if (drawerItem.getIdentifier() == 17) {
+                                intent = new Intent(SampleActivity.this, ExpandableMultiselectDeleteSampleActivity.class);
+                            } else if (drawerItem.getIdentifier() == 18) {
+                                intent = new Intent(SampleActivity.this, StickyHeaderMopubAdsActivity.class);
+                            } else if (drawerItem.getIdentifier() == 19) {
+                                intent = new Intent(SampleActivity.this, DiffUtilActivity.class);
                             } else if (drawerItem.getIdentifier() == 100) {
                                 intent = new LibsBuilder()
                                         .withFields(R.string.class.getFields())
@@ -133,26 +150,24 @@ public class SampleActivity extends AppCompatActivity {
                 .withSelectedItemByPosition(-1)
                 .build();
 
+        //create our ItemAdapter which will host our items
+        mItemAdapter = new ItemAdapter<>();
+
         //create our FastAdapter which will manage everything
-        mFastAdapter = new FastAdapter<>();
+        mFastAdapter = FastAdapter.with(Arrays.asList(mItemAdapter));
         mFastAdapter.withSelectable(true);
         mFastAdapter.withMultiSelect(true);
         mFastAdapter.withSelectOnLongClick(false);
-        //create our ItemAdapter which will host our items
-        mItemAdapter = new ItemAdapter<>();
 
         //configure our fastAdapter
         //get our recyclerView and do basic setup
         mRecyclerView = (RecyclerView) findViewById(R.id.rv);
         //mRecyclerView.setLayoutManager(new GridLayoutManager(this, 3));
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        mRecyclerView.setAdapter(mItemAdapter.wrap(mFastAdapter));
+        mRecyclerView.setAdapter(mFastAdapter);
         mRecyclerView.setItemAnimator(new SlideDownAlphaAnimator());
         mRecyclerView.getItemAnimator().setAddDuration(500);
         mRecyclerView.getItemAnimator().setRemoveDuration(500);
-
-        //restore selections (this has to be done after the items were added
-        mFastAdapter.withSavedInstanceState(savedInstanceState);
 
         //if we do this. the first added items will be animated :D
         new Handler().postDelayed(new Runnable() {
@@ -160,6 +175,9 @@ public class SampleActivity extends AppCompatActivity {
             public void run() {
                 //add some dummy data
                 mItemAdapter.add(ImageDummyData.getSimpleImageItems());
+
+                //restore selections (this has to be done after the items were added
+                mFastAdapter.withSavedInstanceState(savedInstanceState);
             }
         }, 50);
     }
@@ -178,26 +196,21 @@ public class SampleActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         //find out the current visible position
-        int position = 0;
+        int firstVisiblePosition = 0;
         if (mRecyclerView.getLayoutManager() instanceof LinearLayoutManager) {
-            position = ((LinearLayoutManager) mRecyclerView.getLayoutManager()).findFirstVisibleItemPosition();
+            firstVisiblePosition = ((LinearLayoutManager) mRecyclerView.getLayoutManager()).findFirstVisibleItemPosition();
         } else if (mRecyclerView.getLayoutManager() instanceof GridLayoutManager) {
-            position = ((GridLayoutManager) mRecyclerView.getLayoutManager()).findFirstVisibleItemPosition();
+            firstVisiblePosition = ((GridLayoutManager) mRecyclerView.getLayoutManager()).findFirstVisibleItemPosition();
         }
 
         //handle the menu item click
         switch (item.getItemId()) {
             case R.id.item_add:
-                if (mRecyclerView.getLayoutManager() instanceof LinearLayoutManager) {
-                    position = ((LinearLayoutManager) mRecyclerView.getLayoutManager()).findFirstVisibleItemPosition();
-                } else if (mRecyclerView.getLayoutManager() instanceof GridLayoutManager) {
-                    position = ((GridLayoutManager) mRecyclerView.getLayoutManager()).findFirstVisibleItemPosition();
-                }
-                mItemAdapter.add(position + 1, ImageDummyData.getDummyItem());
+                mItemAdapter.add(firstVisiblePosition + 1, ImageDummyData.getDummyItem());
                 return true;
             case R.id.item_change:
                 for (Integer pos : mFastAdapter.getSelections()) {
-                    SimpleImageItem i = mItemAdapter.getItem(pos);
+                    SimpleImageItem i = mItemAdapter.getAdapterItem(pos);
                     i.withName("CHANGED");
                     i.withDescription("This item was modified");
                     mItemAdapter.set(pos, i);
@@ -205,8 +218,8 @@ public class SampleActivity extends AppCompatActivity {
                 return true;
             case R.id.item_move:
                 List items = mItemAdapter.getAdapterItems();
-                if (items.size() > position + 3) {
-                    mItemAdapter.move(position + 1, position + 3);
+                if (items.size() > firstVisiblePosition + 3) {
+                    mItemAdapter.move(firstVisiblePosition + 1, firstVisiblePosition + 3);
                 }
                 return true;
             case R.id.item_delete:
@@ -224,7 +237,7 @@ public class SampleActivity extends AppCompatActivity {
     protected void onSaveInstanceState(Bundle outState) {
         //add the values which need to be saved from the drawer to the bundle
         outState = mResult.saveInstanceState(outState);
-        //add the values which need to be saved from the adapter to the bundel
+        //add the values which need to be saved from the adapter to the bundle
         outState = mFastAdapter.saveInstanceState(outState);
         super.onSaveInstanceState(outState);
     }
