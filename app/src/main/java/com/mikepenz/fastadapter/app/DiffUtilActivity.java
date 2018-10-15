@@ -2,12 +2,12 @@ package com.mikepenz.fastadapter.app;
 
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.util.DiffUtil;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -131,17 +131,17 @@ public class DiffUtilActivity extends AppCompatActivity {
             public List<SimpleItem> call() throws Exception {
                 return createData();
             }
-        }).map(new Function<List<SimpleItem>, DiffResultContainer>() {
+        }).map(new Function<List<SimpleItem>, DiffUtil.DiffResult>() {
             @Override
-            public DiffResultContainer apply(List<SimpleItem> simpleItems) throws Exception {
-                return new DiffResultContainer(FastAdapterDiffUtil.calculateDiff(fastItemAdapter, simpleItems), simpleItems);
+            public DiffUtil.DiffResult apply(List<SimpleItem> simpleItems) throws Exception {
+                return FastAdapterDiffUtil.calculateDiff(fastItemAdapter, simpleItems);
             }
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<DiffResultContainer>() {
+                .subscribe(new Consumer<DiffUtil.DiffResult>() {
                     @Override
-                    public void accept(DiffResultContainer result) throws Exception {
-                        FastAdapterDiffUtil.set(fastItemAdapter, result.diffResult, result.newList);
+                    public void accept(DiffUtil.DiffResult result) throws Exception {
+                        FastAdapterDiffUtil.set(fastItemAdapter, result);
                     }
                 }));
     }
@@ -161,15 +161,5 @@ public class DiffUtilActivity extends AppCompatActivity {
         );
         Collections.shuffle(items);
         return items;
-    }
-
-    private static class DiffResultContainer {
-        DiffUtil.DiffResult diffResult;
-        List<SimpleItem> newList;
-
-        DiffResultContainer(DiffUtil.DiffResult diffResult, List<SimpleItem> newList) {
-            this.diffResult = diffResult;
-            this.newList = newList;
-        }
     }
 }

@@ -1,17 +1,24 @@
 package com.mikepenz.fastadapter.adapters;
 
+import androidx.annotation.NonNull;
+
 import com.mikepenz.fastadapter.AbstractAdapter;
 import com.mikepenz.fastadapter.FastAdapter;
+import com.mikepenz.fastadapter.IAdapter;
 import com.mikepenz.fastadapter.IAdapterExtension;
 import com.mikepenz.fastadapter.IAdapterNotifier;
+import com.mikepenz.fastadapter.IExpandable;
 import com.mikepenz.fastadapter.IIdDistributor;
 import com.mikepenz.fastadapter.IInterceptor;
 import com.mikepenz.fastadapter.IItem;
 import com.mikepenz.fastadapter.IItemAdapter;
 import com.mikepenz.fastadapter.IItemList;
 import com.mikepenz.fastadapter.IModelItem;
+import com.mikepenz.fastadapter.ISubItem;
+import com.mikepenz.fastadapter.utils.AdapterPredicate;
 import com.mikepenz.fastadapter.utils.DefaultItemList;
 import com.mikepenz.fastadapter.utils.DefaultItemListImpl;
+import com.mikepenz.fastadapter.utils.Triple;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -311,29 +318,12 @@ public class ModelAdapter<Model, Item extends IItem> extends AbstractAdapter<Ite
             ext.set(items, resetFilter);
         }
 
-        //get sizes
-        int newItemsCount = items.size();
-        int previousItemsCount = mItems.size();
-        int itemsBeforeThisAdapter = getFastAdapter().getPreItemCountByOrder(getOrder());
-
-        //make sure the new items list is not a reference of the already mItems list
-        if (items != mItems) {
-            //remove all previous items
-            if (!mItems.isEmpty()) {
-                mItems.clear(itemsBeforeThisAdapter);
-            }
-
-            //add all new items to the list
-            mItems.addAll(items, itemsBeforeThisAdapter);
-        }
-
         //map the types
         mapPossibleTypes(items);
-        //now properly notify the adapter about the changes
-        if (adapterNotifier == null) {
-            adapterNotifier = IAdapterNotifier.DEFAULT;
-        }
-        adapterNotifier.notify(getFastAdapter(), newItemsCount, previousItemsCount, itemsBeforeThisAdapter);
+
+        //forward set
+        int itemsBeforeThisAdapter = getFastAdapter().getPreItemCountByOrder(getOrder());
+        mItems.set(items, itemsBeforeThisAdapter, adapterNotifier);
 
         return this;
     }
@@ -368,12 +358,13 @@ public class ModelAdapter<Model, Item extends IItem> extends AbstractAdapter<Ite
             getItemFilter().performFiltering(null);
         }
 
-        mItems.setNewList(items);
-        mapPossibleTypes(mItems.getItems());
+        mapPossibleTypes(items);
 
-        if (filter != null && retainFilter) {
+        boolean publishResults = filter != null && retainFilter;
+        if (publishResults) {
             getItemFilter().publishResults(filter, getItemFilter().performFiltering(filter));
         }
+        mItems.setNewList(items, !publishResults);
 
         return this;
     }
@@ -410,7 +401,12 @@ public class ModelAdapter<Model, Item extends IItem> extends AbstractAdapter<Ite
         if (mUseIdDistributor) {
             getIdDistributor().checkIds(items);
         }
-        mItems.addAll(items, getFastAdapter().getPreItemCountByOrder(getOrder()));
+        FastAdapter<Item> fastAdapter = getFastAdapter();
+        if (fastAdapter != null) {
+            mItems.addAll(items, fastAdapter.getPreItemCountByOrder(getOrder()));
+        } else {
+            mItems.addAll(items, 0);
+        }
         mapPossibleTypes(items);
         return this;
     }
@@ -464,7 +460,7 @@ public class ModelAdapter<Model, Item extends IItem> extends AbstractAdapter<Ite
         if (mUseIdDistributor) {
             getIdDistributor().checkId(item);
         }
-        mItems.set(position - getFastAdapter().getPreItemCount(position), item);
+        mItems.set(position, item, getFastAdapter().getPreItemCount(position));
         mFastAdapter.registerTypeInstance(item);
         return this;
     }
@@ -508,5 +504,70 @@ public class ModelAdapter<Model, Item extends IItem> extends AbstractAdapter<Ite
     public ModelAdapter<Model, Item> clear() {
         mItems.clear(getFastAdapter().getPreItemCountByOrder(getOrder()));
         return this;
+    }
+
+    /**
+     * remvoes an item by it's identifier
+     *
+     * @param identifier the identifier to search for
+     * @return this
+     */
+    public ModelAdapter<Model, Item> removeByIdentifier(final long identifier) {
+        recursive(new AdapterPredicate<Item>() {
+            @Override
+            public boolean apply(@NonNull IAdapter<Item> lastParentAdapter, int lastParentPosition, Item item, int position) {
+                if (identifier == item.getIdentifier()) {
+                    //if it's a subitem remove it from the parent
+                    if (item instanceof ISubItem) {
+                        //a sub item which is not in the list can be instantly deleted
+                        IExpandable parent = (IExpandable) ((ISubItem) item).getParent();
+                        //parent should not be null, but check in any case..
+                        if (parent != null) {
+                            parent.getSubItems().remove(item);
+                        }
+                    }
+                    if (position != -1) {
+                        //a normal displayed item can only be deleted afterwards
+                        remove(position);
+                    }
+                }
+                return false;
+            }
+        }, false);
+
+        return this;
+    }
+
+    /**
+     * util function which recursively iterates over all items and subItems of the given adapter.
+     * It executes the given `predicate` on every item and will either stop if that function returns true, or continue (if stopOnMatch is false)
+     *
+     * @param predicate   the predicate to run on every item, to check for a match or do some changes (e.g. select)
+     * @param stopOnMatch defines if we should stop iterating after the first match
+     * @return Triple&lt;Boolean, IItem, Integer&gt; The first value is true (it is always not null), the second contains the item and the third the position (if the item is visible) if we had a match, (always false and null and null in case of stopOnMatch == false)
+     */
+    @NonNull
+    public Triple<Boolean, Item, Integer> recursive(AdapterPredicate<Item> predicate, boolean stopOnMatch) {
+        int preItemCount = getFastAdapter().getPreItemCountByOrder(getOrder());
+        for (int i = 0; i < getAdapterItemCount(); i++) {
+            int globalPosition = i + preItemCount;
+
+            //retrieve the item + it's adapter
+            FastAdapter.RelativeInfo<Item> relativeInfo = getFastAdapter().getRelativeInfo(globalPosition);
+            Item item = relativeInfo.item;
+
+            if (predicate.apply(relativeInfo.adapter, globalPosition, item, globalPosition) && stopOnMatch) {
+                return new Triple<>(true, item, globalPosition);
+            }
+
+            if (item instanceof IExpandable) {
+                Triple<Boolean, Item, Integer> res = FastAdapter.recursiveSub(relativeInfo.adapter, globalPosition, (IExpandable) item, predicate, stopOnMatch);
+                if (res.first && stopOnMatch) {
+                    return res;
+                }
+            }
+        }
+
+        return new Triple<>(false, null, null);
     }
 }

@@ -1,6 +1,6 @@
 package com.mikepenz.fastadapter;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +20,6 @@ public class TestDataGenerator {
 
     @NonNull
     public static TestItem genTestItem(int i) {
-        TestItem testItem = new TestItem().withIdentifier(i);
-        return testItem;
+        return new TestItem(i + "").withIdentifier(i);
     }
 }

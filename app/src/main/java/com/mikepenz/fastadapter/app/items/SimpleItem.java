@@ -2,8 +2,8 @@ package com.mikepenz.fastadapter.app.items;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.support.annotation.NonNull;
-import android.support.annotation.StringRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.StringRes;
 import android.view.View;
 import android.widget.TextView;
 
@@ -110,7 +110,7 @@ public class SimpleItem extends AbstractItem<SimpleItem, SimpleItem.ViewHolder> 
         }
 
         @Override
-        public void bindView(SimpleItem item, List<Object> payloads) {
+        public void bindView(@NonNull SimpleItem item, @NonNull List<Object> payloads) {
             //get the context
             Context ctx = itemView.getContext();
 
@@ -123,7 +123,7 @@ public class SimpleItem extends AbstractItem<SimpleItem, SimpleItem.ViewHolder> 
         }
 
         @Override
-        public void unbindView(SimpleItem item) {
+        public void unbindView(@NonNull SimpleItem item) {
             name.setText(null);
             description.setText(null);
         }

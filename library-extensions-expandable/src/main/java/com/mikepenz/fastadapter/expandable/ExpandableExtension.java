@@ -1,7 +1,9 @@
 package com.mikepenz.fastadapter.expandable;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.collection.ArraySet;
 import android.util.SparseIntArray;
 import android.view.MotionEvent;
 import android.view.View;
@@ -14,6 +16,7 @@ import com.mikepenz.fastadapter.IItem;
 import com.mikepenz.fastadapter.IItemAdapter;
 import com.mikepenz.fastadapter.ISubItem;
 import com.mikepenz.fastadapter.select.SelectExtension;
+import com.mikepenz.fastadapter.utils.AdapterPredicate;
 import com.mikepenz.fastadapter.utils.AdapterUtil;
 
 import java.util.ArrayList;
@@ -65,7 +68,6 @@ public class ExpandableExtension<Item extends IItem> implements IAdapterExtensio
             return;
         }
         ArrayList<String> expandedItems = savedInstanceState.getStringArrayList(BUNDLE_EXPANDED + prefix);
-        ArrayList<String> selectedItems = savedInstanceState.getStringArrayList(BUNDLE_EXPANDED_SELECTIONS + prefix);
         String id;
         for (int i = 0, size = mFastAdapter.getItemCount(); i < size; i++) {
             Item item = mFastAdapter.getItem(i);
@@ -74,9 +76,6 @@ public class ExpandableExtension<Item extends IItem> implements IAdapterExtensio
                 expand(i);
                 size = mFastAdapter.getItemCount();
             }
-
-            //we also have to restore the selections for subItems
-            AdapterUtil.restoreSubItemSelectionStatesForAlternativeStateManagement(item, selectedItems);
         }
     }
 
@@ -85,7 +84,6 @@ public class ExpandableExtension<Item extends IItem> implements IAdapterExtensio
         if (savedInstanceState == null) {
             return;
         }
-        ArrayList<String> selections = new ArrayList<>();
         ArrayList<String> expandedItems = new ArrayList<>();
 
         Item item;
@@ -94,20 +92,13 @@ public class ExpandableExtension<Item extends IItem> implements IAdapterExtensio
             if (item instanceof IExpandable && ((IExpandable) item).isExpanded()) {
                 expandedItems.add(String.valueOf(item.getIdentifier()));
             }
-            if (item.isSelected()) {
-                selections.add(String.valueOf(item.getIdentifier()));
-            }
-            //we also have to find all selections in the sub hirachies
-            AdapterUtil.findSubItemSelections(item, selections);
         }
         //remember the collapsed states
         savedInstanceState.putStringArrayList(BUNDLE_EXPANDED + prefix, expandedItems);
-        //remember the selections
-        savedInstanceState.putStringArrayList(BUNDLE_EXPANDED_SELECTIONS + prefix, selections);
     }
 
     @Override
-    public boolean onClick(View v, int pos, FastAdapter<Item> fastAdapter, Item item) {
+    public boolean onClick(@NonNull View v, int pos, @NonNull FastAdapter<Item> fastAdapter, @NonNull Item item) {
         boolean consumed = false;
         //if this is a expandable item :D (this has to happen after we handled the selection as we refer to the position)
         if (!consumed && item instanceof IExpandable) {
@@ -287,7 +278,7 @@ public class ExpandableExtension<Item extends IItem> implements IAdapterExtensio
      */
     public int[] getExpandedItemsRootLevel(int position) {
         int[] expandedItems;
-        ArrayList<Integer> expandedItemsList = new ArrayList<>();
+        ArraySet<Integer> expandedItemsList = new ArraySet<>();
         Item item = mFastAdapter.getItem(position);
 
         for (int i = 0, size = mFastAdapter.getItemCount(); i < size; i++) {
@@ -305,7 +296,7 @@ public class ExpandableExtension<Item extends IItem> implements IAdapterExtensio
         int expandedItemsListLength = expandedItemsList.size();
         expandedItems = new int[expandedItemsListLength];
         for (int i = 0; i < expandedItemsListLength; i++) {
-            expandedItems[i] = expandedItemsList.get(i);
+            expandedItems[i] = expandedItemsList.valueAt(i);
         }
         return expandedItems;
     }
@@ -360,53 +351,46 @@ public class ExpandableExtension<Item extends IItem> implements IAdapterExtensio
      * @param notifyItemChanged true if we need to call notifyItemChanged. DEFAULT: false
      */
     public void collapse(int position, boolean notifyItemChanged) {
-        Item item = mFastAdapter.getItem(position);
-        if (item != null && item instanceof IExpandable) {
-            IExpandable expandable = (IExpandable) item;
-            //as we now know the item we will collapse we can collapse all subitems
-            //if this item is not already collapsed and has sub items we go on
-            if (expandable.isExpanded() && expandable.getSubItems() != null && expandable.getSubItems().size() > 0) {
-                //first we find out how many items were added in total
-                //also counting subitems
-                int totalAddedItems = expandable.getSubItems().size();
-                for (int i = position + 1; i <= position + totalAddedItems; i++) {
-                    Item tmp = mFastAdapter.getItem(i);
-                    if (tmp instanceof IExpandable) {
-                        IExpandable tmpExpandable = ((IExpandable) tmp);
-                        if (tmpExpandable.getSubItems() != null && tmpExpandable.isExpanded()) {
-                            totalAddedItems = totalAddedItems + tmpExpandable.getSubItems().size();
+        final int[] expandedItemsCount = {0};
+        mFastAdapter.recursive(new AdapterPredicate<Item>() {
+            ArraySet<IItem> allowedParents = new ArraySet<>();
+
+            @Override
+            public boolean apply(@NonNull IAdapter<Item> lastParentAdapter, int lastParentPosition, @NonNull Item item, int position) {
+                //we do not care about non visible items
+                if (position == -1) {
+                    return false;
+                }
+
+                //this is the entrance parent
+                if (allowedParents.size() > 0 && item instanceof ISubItem) {
+                    // Go on until we hit an item with a parent which was not in our expandable hierarchy
+                    IItem parent = ((ISubItem) item).getParent();
+                    if (parent == null || !allowedParents.contains(parent)) {
+                        return true;
+                    }
+                }
+
+                if (item instanceof IExpandable) {
+                    IExpandable expandable = (IExpandable) item;
+                    if (expandable.isExpanded()) {
+                        expandable.withIsExpanded(false);
+
+                        if (expandable.getSubItems() != null) {
+                            expandedItemsCount[0] += expandable.getSubItems().size();
+                            allowedParents.add(item);
                         }
                     }
                 }
 
-                //why... WHY?!
-                for (int i = position + totalAddedItems - 1; i > position; i--) {
-                    Item tmp = mFastAdapter.getItem(i);
-                    if (tmp instanceof IExpandable) {
-                        IExpandable tmpExpandable = ((IExpandable) tmp);
-                        if (tmpExpandable.isExpanded()) {
-                            collapse(i);
-                            if (tmpExpandable.getSubItems() != null) {
-                                i = i - tmpExpandable.getSubItems().size();
-                            }
-                        }
-                    }
-                }
-
-                //we collapse our root element
-                internalCollapse(expandable, position, notifyItemChanged);
+                return false;
             }
-        }
-    }
+        }, position, true);
 
-    private void internalCollapse(IExpandable expandable, int position, boolean notifyItemChanged) {
         IAdapter adapter = mFastAdapter.getAdapter(position);
         if (adapter != null && adapter instanceof IItemAdapter) {
-            ((IItemAdapter) adapter).removeRange(position + 1, expandable.getSubItems().size());
+            ((IItemAdapter) adapter).removeRange(position + 1, expandedItemsCount[0]);
         }
-
-        //remember that this item is now collapsed again
-        expandable.withIsExpanded(false);
 
         //we need to notify to get the correct drawable if there is one showing the current state
         if (notifyItemChanged) {
@@ -499,7 +483,7 @@ public class ExpandableExtension<Item extends IItem> implements IAdapterExtensio
      * deselects all selections
      */
     public void deselect() {
-        SelectExtension<Item> selectExtension = mFastAdapter.getSelectExtension();
+        SelectExtension<Item> selectExtension = mFastAdapter.getExtension(SelectExtension.class);
         if (selectExtension == null) {
             return;
         }
@@ -515,7 +499,7 @@ public class ExpandableExtension<Item extends IItem> implements IAdapterExtensio
      * @param considerSelectableFlag true if the select method should not select an item if its not selectable
      */
     public void select(boolean considerSelectableFlag) {
-        SelectExtension<Item> selectExtension = mFastAdapter.getSelectExtension();
+        SelectExtension<Item> selectExtension = mFastAdapter.getExtension(SelectExtension.class);
         if (selectExtension == null) {
             return;
         }

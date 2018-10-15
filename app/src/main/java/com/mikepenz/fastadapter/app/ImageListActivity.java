@@ -1,12 +1,13 @@
 package com.mikepenz.fastadapter.app;
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
@@ -42,7 +43,7 @@ public class ImageListActivity extends AppCompatActivity {
         //configure our fastAdapter
         mFastItemAdapter.withOnClickListener(new OnClickListener<ImageItem>() {
             @Override
-            public boolean onClick(View v, IAdapter<ImageItem> adapter, ImageItem item, int position) {
+            public boolean onClick(View v, IAdapter<ImageItem> adapter, @NonNull ImageItem item, int position) {
                 Toast.makeText(v.getContext(), item.mName, Toast.LENGTH_SHORT).show();
                 return false;
             }

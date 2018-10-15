@@ -1,5 +1,20 @@
 ### Upgrade Notes
 
+#### v3.3.x
+* Upgraded the library to use `androidX` dependencies. This means your project will need to depend on `androidX` dependencies too. If you still use appcompat please consider using a version older than v3.3.x. 
+* Further details about migrating to androidX and a overview can be found on the official docs. https://developer.android.com/topic/libraries/support-library/refactor
+
+#### v3.2.4
+* Adjusted the `set(int position, Item item, int preItemCount)` to include the `preItemCount` to corretly notify the adapter about the changed element.
+
+#### v3.2.3
+* The `ActionModeHelper` requires a `FastAdapter` with the `SelectExtension` applied. This is done in current versions via `withSelectable(true)`. Make sure this is called before creating the `ActionModeHelper`.
+
+#### v3.2.1
+* `AdapterPredicate` was adjusted to include the `IAdapter<Item> lastParentAdapter`, `int lastParentPosition` to allow more advanced recursive operations on the items
+* removed `select(Item item, int position, boolean fireEvent, boolean considerSelectableFlag)` and replaced with `select(IAdapter<Item> adapter, Item item, int position, boolean fireEvent, boolean considerSelectableFlag)`
+  * this was done to make the `Adapter` `NonNull`
+
 #### v3.0.5
 * The `ItemFilter`s `itemsFiltered` callback method will no longer be called after `onReset` (FIX bug making it impossible to detect when filtering was done)
 

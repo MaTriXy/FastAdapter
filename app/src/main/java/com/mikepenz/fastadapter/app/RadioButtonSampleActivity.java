@@ -1,11 +1,12 @@
 package com.mikepenz.fastadapter.app;
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
@@ -47,7 +48,7 @@ public class RadioButtonSampleActivity extends AppCompatActivity {
         //configure our fastAdapter
         fastItemAdapter.withOnClickListener(new OnClickListener<RadioButtonSampleItem>() {
             @Override
-            public boolean onClick(View v, IAdapter<RadioButtonSampleItem> adapter, RadioButtonSampleItem item, int position) {
+            public boolean onClick(View v, IAdapter<RadioButtonSampleItem> adapter, @NonNull RadioButtonSampleItem item, int position) {
                 Toast.makeText(v.getContext(), (item).name.getText(v.getContext()), Toast.LENGTH_LONG).show();
                 return false;
             }
@@ -55,7 +56,7 @@ public class RadioButtonSampleActivity extends AppCompatActivity {
 
         fastItemAdapter.withOnPreClickListener(new OnClickListener<RadioButtonSampleItem>() {
             @Override
-            public boolean onClick(View v, IAdapter<RadioButtonSampleItem> adapter, RadioButtonSampleItem item, int position) {
+            public boolean onClick(View v, IAdapter<RadioButtonSampleItem> adapter, @NonNull RadioButtonSampleItem item, int position) {
                 // consume otherwise radio/checkbox will be deselected
                 return true;
             }

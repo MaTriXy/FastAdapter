@@ -1,7 +1,5 @@
 apply plugin: 'com.android.library'
 
-group "com.mikepenz"
-
 android {
     compileSdkVersion setup.compileSdk
     buildToolsVersion setup.buildTools
@@ -9,8 +7,8 @@ android {
     defaultConfig {
         minSdkVersion setup.minSdk
         targetSdkVersion setup.targetSdk
-        versionCode 3050
-        versionName '3.0.5'
+        versionCode release.versionCode
+        versionName release.versionName
 
         consumerProguardFiles 'consumer-proguard-rules.pro'
     }
@@ -27,20 +25,18 @@ android {
     }
 }
 
-if (project.hasProperty('pushall') || project.hasProperty('libraryextensiononly')) {
-    apply from: '../gradle-mvn-push.gradle'
-    apply plugin: 'com.novoda.bintray-release'
-    apply from: '../gradle-jcenter-push.gradle'
-}
-
 dependencies {
     implementation  project(':library-core')
     implementation  project(':library')
     implementation  project(':library-extensions-expandable')
 
-    implementation  "com.android.support:recyclerview-v7:${versions.supportLib}"
-    implementation  "com.android.support:design:${versions.supportLib}"
-    implementation  "com.android.support:support-annotations:${versions.supportLib}"
+    implementation "androidx.recyclerview:recyclerview:${versions.androidX}"
+    implementation "com.google.android.material:material:${versions.androidX}"
+    implementation "androidx.annotation:annotation:${versions.androidX}"
 
-    implementation  'com.mikepenz:materialize:1.1.2@aar'
+    implementation  'com.mikepenz:materialize:1.2.0'
+}
+
+if (project.hasProperty('pushall') || project.hasProperty('libraryextensiononly')) {
+    apply from: '../gradle-release.gradle'
 }

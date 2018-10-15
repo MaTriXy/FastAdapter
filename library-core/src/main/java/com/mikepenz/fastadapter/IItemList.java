@@ -2,6 +2,8 @@ package com.mikepenz.fastadapter;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 /**
  * The Item list interface
  */
@@ -24,9 +26,11 @@ public interface IItemList<Item> {
 
     void addAll(List<Item> items, int preItemCount);
 
-    void set(int position, Item item);
+    void set(int position, Item item, int preItemCount);
 
-    void setNewList(List<Item> items);
+    void set(List<Item> items, int preItemCount, @Nullable IAdapterNotifier adapterNotifier);
+
+    void setNewList(List<Item> items, boolean notify);
 
     void addAll(int position, List<Item> items, int preItemCount);
 

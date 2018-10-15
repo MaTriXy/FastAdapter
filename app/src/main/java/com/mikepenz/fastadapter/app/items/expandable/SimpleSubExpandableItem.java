@@ -2,9 +2,10 @@ package com.mikepenz.fastadapter.app.items.expandable;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.support.annotation.StringRes;
-import android.support.v4.view.ViewCompat;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.NonNull;
+import androidx.annotation.StringRes;
+import androidx.core.view.ViewCompat;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -18,7 +19,6 @@ import com.mikepenz.fastadapter.commons.utils.FastAdapterUIUtils;
 import com.mikepenz.fastadapter.expandable.items.AbstractExpandableItem;
 import com.mikepenz.fastadapter.listeners.OnClickListener;
 import com.mikepenz.materialdrawer.holder.StringHolder;
-import com.mikepenz.materialize.util.UIUtils;
 
 import java.util.List;
 
@@ -73,7 +73,7 @@ public class SimpleSubExpandableItem<Parent extends IItem & IExpandable, SubItem
     //we define a clickListener in here so we can directly animate
     final private OnClickListener<SimpleSubExpandableItem<Parent, SubItem>> onClickListener = new OnClickListener<SimpleSubExpandableItem<Parent, SubItem>>() {
         @Override
-        public boolean onClick(View v, IAdapter adapter, SimpleSubExpandableItem item, int position) {
+        public boolean onClick(View v, IAdapter adapter, @NonNull SimpleSubExpandableItem item, int position) {
             if (item.getSubItems() != null) {
                 if (!item.isExpanded()) {
                     ViewCompat.animate(v.findViewById(R.id.material_drawer_icon)).rotation(180).start();
@@ -135,7 +135,8 @@ public class SimpleSubExpandableItem<Parent extends IItem & IExpandable, SubItem
         Context ctx = viewHolder.itemView.getContext();
 
         //set the background for the item
-        UIUtils.setBackground(viewHolder.view, FastAdapterUIUtils.getSelectableBackground(ctx, Color.RED, true));
+        viewHolder.view.clearAnimation();
+        ViewCompat.setBackground(viewHolder.view, FastAdapterUIUtils.getSelectableBackground(ctx, Color.RED, true));
         //set the text for the name
         StringHolder.applyTo(name, viewHolder.name);
         //set the text for the description or hide

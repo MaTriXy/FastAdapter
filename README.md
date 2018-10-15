@@ -1,4 +1,4 @@
-# FastAdapter  [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.mikepenz/fastadapter/badge.svg?style=flat)](https://maven-badges.herokuapp.com/maven-central/com.mikepenz/fastadapter) [![Join the chat at https://gitter.im/mikepenz/fastadapter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/mikepenz/fastadapter?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+# FastAdapter  [![Download](https://api.bintray.com/packages/mikepenz/maven/com.mikepenz%3Afastadapter/images/download.svg?version=3.2.7) ](https://bintray.com/mikepenz/maven/com.mikepenz%3Afastadapter/3.2.7/link) [![Join the chat at https://gitter.im/mikepenz/fastadapter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/mikepenz/fastadapter?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 > The RecyclerView is one of the most used widgets in the Android world, and with it you have to implement an Adapter which provides the items for the view. Most use cases require the same base logic, but require you to write everything again and again.
 
@@ -41,33 +41,35 @@ You can try it out here [Google Play](https://play.google.com/store/apps/details
 
 The library is split up into core, commons, and extensions. The core functions are included in the following dependency.
 ```gradle
-implementation 'com.mikepenz:fastadapter:3.0.5@aar'
-implementation  'com.android.support:appcompat-v7:${latestSupportLib}'
-implementation  'com.android.support:recyclerview-v7:${latestSupportLib}'
+implementation 'com.mikepenz:fastadapter:3.3.1'
+implementation "androidx.appcompat:appcompat:${androidX}"
+implementation "androidx.recyclerview:recyclerview:${androidX}"
 ```
 
 The commons package comes with some useful helpers (which are not needed in all cases) This one for example includes the `FastItemAdapter`
 ```gradle
-implementation 'com.mikepenz:fastadapter-commons:3.0.5@aar'
+implementation 'com.mikepenz:fastadapter-commons:3.3.1'
 ```
 
 Expandable support is included and can be added via this
 ```gradle
-implementation 'com.mikepenz:fastadapter-extensions-expandable:3.0.5@aar'
+implementation 'com.mikepenz:fastadapter-extensions-expandable:3.3.1'
 //The tiny Materialize library used for its useful helper classes
-implementation 'com.mikepenz:materialize:${latestVersion}@aar'
+implementation 'com.mikepenz:materialize:${latestVersion}' // at least 1.2.0
 ```
 
 Many helper classes are included in the following dependency. (This functionality also needs the `Expandable` extension
 ```gradle
-implementation 'com.mikepenz:fastadapter-extensions:3.0.5@aar'
-implementation  'com.android.support:design:${versions.supportLib}'
+implementation 'com.mikepenz:fastadapter-extensions:3.3.1'
+implementation "com.google.android.material:material:${androidX}"
 //The tiny Materialize library used for its useful helper classes
-implementation 'com.mikepenz:materialize:${latestVersion}@aar'
+implementation 'com.mikepenz:materialize:${latestVersion}' // at least 1.2.0
 ```
 
-## v3.0.x
+## v3.3.x
+> Upgrades to use androidX dependencies. Use a version smaller than 3.3.x to use with appCompat dependencies.
 
+## v3.x.x
 > v3 is a huge new release and comes with a big set of new changes. If you previously used the `FastAdapter` and head over to the [MIGRATION GUIDE](https://github.com/mikepenz/FastAdapter/blob/develop/MIGRATION.md) on how to get started with v3.
 > In case you are searching [v2.x head over here to it here](https://github.com/mikepenz/FastAdapter/tree/v2.6.3).
 
@@ -177,16 +179,16 @@ fastItemAdapter.withEventHook(new ClickEventHook<SampleItem>() {
 ### 5. Filter 
 ```java
 // Call this in onQueryTextSubmit() & onQueryTextChange() when using SearchView
-fastAdapter.filter("yourSearchTerm");
+itemAdapter.filter("yourSearchTerm");
 
-fastAdapter.getItemFilter().withFilterPredicate(new IItemAdapter.Predicate<Item>() {
+itemAdapter.getItemFilter().withFilterPredicate(new IItemAdapter.Predicate<Item>() {
     @Override
     public boolean filter(Item item, CharSequence constraint) {
 	return item.getName().startsWith(String.valueOf(constraint));
     }
 });
 ```
-`filter()` will return true to indicate which items will be removed. Returning false indicates items that will be retained.
+`filter()` should return true for items to be retained and false for items to be removed.
 
 ### 6. Drag and drop
 First, attach `ItemTouchHelper` to RecyclerView.
@@ -270,7 +272,7 @@ public class SimpleSubExpandableItem extends AbstractExpandableItem<SimpleSubExp
 
 
 ## Articles
-- [RecyclerView Adapter made ease](http://blog.grafixartist.com/recyclerview-adapter-android-made-fast-easy/) (FastAdapter v2.x)
+- [RecyclerView Adapter made easy](http://blog.grafixartist.com/recyclerview-adapter-android-made-fast-easy/) (FastAdapter v2.x)
 
 ## Libs used in sample app:
 Mike Penz:

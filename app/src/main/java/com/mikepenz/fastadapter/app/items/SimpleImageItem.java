@@ -1,7 +1,7 @@
 package com.mikepenz.fastadapter.app.items;
 
 import android.content.Context;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -81,6 +81,8 @@ public class SimpleImageItem extends AbstractItem<SimpleImageItem, SimpleImageIt
 
         //set the background for the item
         int color = UIUtils.getThemeColor(ctx, R.attr.colorPrimary);
+
+        viewHolder.view.clearAnimation();
         viewHolder.view.setForeground(FastAdapterUIUtils.getSelectablePressedBackground(ctx, FastAdapterUIUtils.adjustAlpha(color, 100), 50, true));
 
         //load glide

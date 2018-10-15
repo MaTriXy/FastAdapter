@@ -1,6 +1,7 @@
 package com.mikepenz.fastadapter.app.adapters;
 
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.mikepenz.fastadapter.IItem;
 import com.mikepenz.fastadapter.commons.adapters.FastItemAdapter;
@@ -23,7 +24,7 @@ public class MopubFastItemAdapter<Item extends IItem> extends FastItemAdapter<It
     }
 
     @Override
-    public int getHolderAdapterPosition(RecyclerView.ViewHolder holder) {
+    public int getHolderAdapterPosition(@NonNull RecyclerView.ViewHolder holder) {
         return mMoPubAdAdapter.getOriginalPosition(super.getHolderAdapterPosition(holder));
     }
 }

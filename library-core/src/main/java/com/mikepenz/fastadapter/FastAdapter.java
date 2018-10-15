@@ -1,8 +1,6 @@
 package com.mikepenz.fastadapter;
 
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.MotionEvent;
@@ -21,24 +19,39 @@ import com.mikepenz.fastadapter.listeners.OnLongClickListener;
 import com.mikepenz.fastadapter.listeners.OnTouchListener;
 import com.mikepenz.fastadapter.listeners.TouchEventHook;
 import com.mikepenz.fastadapter.select.SelectExtension;
+import com.mikepenz.fastadapter.utils.AdapterPredicate;
 import com.mikepenz.fastadapter.utils.DefaultTypeInstanceCache;
 import com.mikepenz.fastadapter.utils.EventHookUtil;
+import com.mikepenz.fastadapter.utils.Triple;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import androidx.annotation.NonNull;
+import androidx.collection.ArrayMap;
+import androidx.core.util.Pair;
+import androidx.recyclerview.widget.RecyclerView;
+
 import static com.mikepenz.fastadapter.adapters.ItemAdapter.items;
 
 /**
- * Created by mikepenz on 27.12.15.
+ * The `FastAdapter` class is the core managing class of the `FastAdapter` library, it handles all `IAdapter` implementations, keeps track of the item types which can be displayed
+ * and correctly provides the size and position and identifier information to the {@link RecyclerView}.
+ * <p>
+ * It also comes with {@link IAdapterExtension} allowing to further modify its behaviour.
+ * Additionally it allows to attach various different listener's, and also {@link EventHook}s on per item and view basis.
+ * <p>
+ * See the sample application for more details
+ *
+ * @param <Item> Defines the type of items this `FastAdapter` manages (in case of multiple different types, use `IItem`)
  */
 public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final String TAG = "FastAdapter";
@@ -56,7 +69,7 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
     // event hooks for the items
     private List<EventHook<Item>> eventHooks;
     // the extensions we support
-    final private Set<IAdapterExtension<Item>> mExtensions = new HashSet<>();
+    final private Map<Class, IAdapterExtension<Item>> mExtensions = new ArrayMap<>();
 
     //
     private SelectExtension<Item> mSelectExtension = new SelectExtension<>();
@@ -109,7 +122,7 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      * The cache will manage the type instances to create new views more efficient.
      * Normally an shared cache is used over all adapter instances.
      *
-     * @param mTypeInstanceCache
+     * @param mTypeInstanceCache a custom `TypeInstanceCache` implementation
      */
     public void setTypeInstanceCache(ITypeInstanceCache<Item> mTypeInstanceCache) {
         this.mTypeInstanceCache = mTypeInstanceCache;
@@ -132,6 +145,7 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      * @param adapter the adapters which this FastAdapter should use
      * @return a new FastAdapter
      */
+    @SuppressWarnings("unchecked")
     public static <Item extends IItem, A extends IAdapter> FastAdapter<Item> with(A adapter) {
         FastAdapter<Item> fastAdapter = new FastAdapter<>();
         fastAdapter.addAdapter(0, adapter);
@@ -156,14 +170,13 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      * @param adapters the adapters which this FastAdapter should use
      * @return a new FastAdapter
      */
+    @SuppressWarnings("unchecked")
     public static <Item extends IItem, A extends IAdapter> FastAdapter<Item> with(@Nullable Collection<A> adapters, @Nullable Collection<IAdapterExtension<Item>> extensions) {
         FastAdapter<Item> fastAdapter = new FastAdapter<>();
         if (adapters == null) {
             fastAdapter.mAdapters.add((IAdapter<Item>) items());
         } else {
-            for (A adapter : adapters) {
-                fastAdapter.mAdapters.add(adapter);
-            }
+            fastAdapter.mAdapters.addAll((Collection<IAdapter<Item>>) adapters);
         }
         for (int i = 0; i < fastAdapter.mAdapters.size(); i++) {
             fastAdapter.mAdapters.get(i).withFastAdapter(fastAdapter).setOrder(i);
@@ -188,8 +201,10 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      */
     public <A extends IAdapter<Item>> FastAdapter<Item> addAdapter(int index, A adapter) {
         mAdapters.add(index, adapter);
+        adapter.withFastAdapter(this);
+        adapter.mapPossibleTypes(adapter.getAdapterItems());
         for (int i = 0; i < mAdapters.size(); i++) {
-            mAdapters.get(i).withFastAdapter(this).setOrder(i);
+            mAdapters.get(i).setOrder(i);
         }
         cacheSizes();
         return this;
@@ -214,7 +229,10 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      * @return
      */
     public <E extends IAdapterExtension<Item>> FastAdapter<Item> addExtension(E extension) {
-        mExtensions.add(extension);
+        if (mExtensions.containsKey(extension.getClass())) {
+            throw new IllegalStateException("The given extension was already registered with this FastAdapter instance");
+        }
+        mExtensions.put(extension.getClass(), extension);
         extension.init(this);
         return this;
     }
@@ -222,8 +240,18 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
     /**
      * @return the AdapterExtensions we provided
      */
-    public Set<IAdapterExtension<Item>> getExtensions() {
-        return mExtensions;
+    public Collection<IAdapterExtension<Item>> getExtensions() {
+        return mExtensions.values();
+    }
+
+    /**
+     * @param clazz the extension class, to retrieve its instance
+     * @return the found IAdapterExtension or null if it is not found
+     */
+    @Nullable
+    @SuppressWarnings("unchecked")
+    public <T extends IAdapterExtension<Item>> T getExtension(Class<? super T> clazz) {
+        return (T) mExtensions.get(clazz);
     }
 
     /**
@@ -420,7 +448,7 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
         if (selectable) {
             addExtension(mSelectExtension);
         } else {
-            mExtensions.remove(mSelectExtension);
+            mExtensions.remove(mSelectExtension.getClass());
         }
         //TODO revisit this --> false means anyways that it is not in the extension list!
         mSelectExtension.withSelectable(selectable);
@@ -493,7 +521,7 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      * @return this
      */
     public FastAdapter<Item> withSavedInstanceState(@Nullable Bundle savedInstanceState, String prefix) {
-        for (IAdapterExtension<Item> ext : mExtensions) {
+        for (IAdapterExtension<Item> ext : mExtensions.values()) {
             ext.withSavedInstanceState(savedInstanceState, prefix);
         }
 
@@ -505,6 +533,7 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      *
      * @param item an IItem which will be shown in the list
      */
+    @SuppressWarnings("unchecked")
     public void registerTypeInstance(Item item) {
         if (getTypeInstanceCache().register(item)) {
             //check if the item implements hookable when its added for the first time
@@ -562,7 +591,7 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
                 }
 
                 // handle our extensions
-                for (IAdapterExtension<Item> ext : fastAdapter.mExtensions) {
+                for (IAdapterExtension<Item> ext : fastAdapter.mExtensions.values()) {
                     if (!consumed) {
                         consumed = ext.onClick(v, pos, fastAdapter, item);
                     } else {
@@ -598,7 +627,7 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
                 }
 
                 // handle our extensions
-                for (IAdapterExtension<Item> ext : fastAdapter.mExtensions) {
+                for (IAdapterExtension<Item> ext : fastAdapter.mExtensions.values()) {
                     if (!consumed) {
                         consumed = ext.onLongClick(v, pos, fastAdapter, item);
                     } else {
@@ -623,7 +652,7 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
         public boolean onTouch(View v, MotionEvent event, int position, FastAdapter<Item> fastAdapter, Item item) {
             boolean consumed = false;
             // handle our extensions
-            for (IAdapterExtension<Item> ext : fastAdapter.mExtensions) {
+            for (IAdapterExtension<Item> ext : fastAdapter.mExtensions.values()) {
                 if (!consumed) {
                     consumed = ext.onTouch(v, event, position, fastAdapter, item);
                 } else {
@@ -648,6 +677,7 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      * @return the ViewHolder with the bound data
      */
     @Override
+    @SuppressWarnings("unchecked")
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         if (mVerbose) Log.v(TAG, "onCreateViewHolder: " + viewType);
 
@@ -679,6 +709,7 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      * @param position the global position
      */
     @Override
+    @SuppressWarnings("unchecked")
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
         if (mLegacyBindViewMode) {
             if (mVerbose) {
@@ -827,6 +858,30 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
     }
 
     /**
+     * gets the IItem given an identifier, from all registered adapters
+     *
+     * @param identifier the identifier of the searched item
+     * @return the found Pair&lt;IItem, Integer&gt; (the found item, and it's global position if it is currently displayed) or null
+     */
+    @SuppressWarnings("unchecked")
+    public Pair<Item, Integer> getItemById(final long identifier) {
+        if (identifier == -1) {
+            return null;
+        }
+        Triple result = recursive(new AdapterPredicate() {
+            @Override
+            public boolean apply(@NonNull IAdapter lastParentAdapter, int lastParentPosition, @NonNull IItem item, int position) {
+                return item.getIdentifier() == identifier;
+            }
+        }, true);
+        if (result.second == null) {
+            return null;
+        } else {
+            return new Pair(result.second, result.third);
+        }
+    }
+
+    /**
      * Internal method to get the Item as ItemHolder which comes with the relative position within its adapter
      * Finds the responsible adapter for the given position
      *
@@ -834,7 +889,7 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      * @return the adapter which is responsible for this position
      */
     public RelativeInfo<Item> getRelativeInfo(int position) {
-        if (position < 0) {
+        if (position < 0 || position >= getItemCount()) {
             return new RelativeInfo<>();
         }
 
@@ -960,7 +1015,7 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      */
     public Bundle saveInstanceState(@Nullable Bundle savedInstanceState, String prefix) {
         // handle our extensions
-        for (IAdapterExtension<Item> ext : mExtensions) {
+        for (IAdapterExtension<Item> ext : mExtensions.values()) {
             ext.saveInstanceState(savedInstanceState, prefix);
         }
         return savedInstanceState;
@@ -1026,14 +1081,18 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
 
     /**
      * @return the selectExtension defined for this FastAdaper
+     * @deprecated deprecated in favor of {@link #getExtension(Class)}
      */
+    @Deprecated
     public SelectExtension<Item> getSelectExtension() {
         return mSelectExtension;
     }
 
     /**
      * @return a set with the global positions of all selected items
+     * @deprecated deprecated in favor of {@link SelectExtension#getSelections()} , Retrieve it via {@link #getExtension(Class)}
      */
+    @Deprecated
     public Set<Integer> getSelections() {
         return mSelectExtension.getSelections();
     }
@@ -1041,7 +1100,9 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
 
     /**
      * @return a set with the items which are currently selected
+     * @deprecated deprecated in favor of {@link SelectExtension#getSelectedItems()} , Retrieve it via {@link #getExtension(Class)}
      */
+    @Deprecated
     public Set<Item> getSelectedItems() {
         return mSelectExtension.getSelectedItems();
     }
@@ -1050,7 +1111,9 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      * toggles the selection of the item at the given position
      *
      * @param position the global position
+     * @deprecated deprecated in favor of {@link SelectExtension#toggleSelection(int)} , Retrieve it via {@link #getExtension(Class)}
      */
+    @Deprecated
     public void toggleSelection(int position) {
         mSelectExtension.toggleSelection(position);
     }
@@ -1059,7 +1122,9 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      * selects all items at the positions in the iteratable
      *
      * @param positions the global positions to select
+     * @deprecated deprecated in favor of {@link SelectExtension#select(Iterable)}  , Retrieve it via {@link #getExtension(Class)}
      */
+    @Deprecated
     public void select(Iterable<Integer> positions) {
         mSelectExtension.select(positions);
     }
@@ -1068,7 +1133,9 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      * selects an item and remembers its position in the selections list
      *
      * @param position the global position
+     * @deprecated deprecated in favor of {@link SelectExtension#select(int)}, Retrieve it via {@link #getExtension(Class)}
      */
+    @Deprecated
     public void select(int position) {
         mSelectExtension.select(position, false, false);
     }
@@ -1078,7 +1145,9 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      *
      * @param position  the global position
      * @param fireEvent true if the onClick listener should be called
+     * @deprecated deprecated in favor of {@link SelectExtension#select(int, boolean)} , Retrieve it via {@link #getExtension(Class)}
      */
+    @Deprecated
     public void select(int position, boolean fireEvent) {
         mSelectExtension.select(position, fireEvent, false);
     }
@@ -1089,21 +1158,29 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      * @param position               the global position
      * @param fireEvent              true if the onClick listener should be called
      * @param considerSelectableFlag true if the select method should not select an item if its not selectable
+     * @deprecated deprecated in favor of {@link SelectExtension#select(int, boolean, boolean)} , Retrieve it via {@link #getExtension(Class)}
      */
+    @Deprecated
     public void select(int position, boolean fireEvent, boolean considerSelectableFlag) {
         mSelectExtension.select(position, fireEvent, considerSelectableFlag);
     }
 
     /**
      * deselects all selections
+     *
+     * @deprecated deprecated in favor of {@link SelectExtension#deselect()} , Retrieve it via {@link #getExtension(Class)}
      */
+    @Deprecated
     public void deselect() {
         mSelectExtension.deselect();
     }
 
     /**
      * select all items
+     *
+     * @deprecated deprecated in favor of {@link SelectExtension#select()} , Retrieve it via {@link #getExtension(Class)}
      */
+    @Deprecated
     public void select() {
         mSelectExtension.select(false);
     }
@@ -1112,7 +1189,9 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      * select all items
      *
      * @param considerSelectableFlag true if the select method should not select an item if its not selectable
+     * @deprecated deprecated in favor of {@link SelectExtension#select(boolean)} , Retrieve it via {@link #getExtension(Class)}
      */
+    @Deprecated
     public void select(boolean considerSelectableFlag) {
         mSelectExtension.select(considerSelectableFlag);
     }
@@ -1121,7 +1200,9 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      * deselects all items at the positions in the iteratable
      *
      * @param positions the global positions to deselect
+     * @deprecated deprecated in favor of {@link SelectExtension#deselect(Iterable)} , Retrieve it via {@link #getExtension(Class)}
      */
+    @Deprecated
     public void deselect(Iterable<Integer> positions) {
         mSelectExtension.deselect(positions);
     }
@@ -1130,9 +1211,11 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      * deselects an item and removes its position in the selections list
      *
      * @param position the global position
+     * @deprecated deprecated in favor of {@link SelectExtension#deselect(int)} , Retrieve it via {@link #getExtension(Class)}
      */
+    @Deprecated
     public void deselect(int position) {
-        mSelectExtension.deselect(position, null);
+        mSelectExtension.deselect(position);
     }
 
     /**
@@ -1141,7 +1224,9 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      *
      * @param position the global position
      * @param entries  the iterator which is used to deselect all
+     * @deprecated deprecated in favor of {@link SelectExtension#deselect(int, Iterator)}, Retrieve it via {@link #getExtension(Class)}
      */
+    @Deprecated
     public void deselect(int position, Iterator<Integer> entries) {
         mSelectExtension.deselect(position, entries);
     }
@@ -1150,7 +1235,9 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      * deletes all current selected items
      *
      * @return a list of the IItem elements which were deleted
+     * @deprecated deprecated in favor of {@link SelectExtension#deleteAllSelectedItems()}, Retrieve it via {@link #getExtension(Class)}
      */
+    @Deprecated
     public List<Item> deleteAllSelectedItems() {
         return mSelectExtension.deleteAllSelectedItems();
     }
@@ -1166,7 +1253,7 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      */
     public void notifyAdapterDataSetChanged() {
         // handle our extensions
-        for (IAdapterExtension<Item> ext : mExtensions) {
+        for (IAdapterExtension<Item> ext : mExtensions.values()) {
             ext.notifyAdapterDataSetChanged();
         }
         cacheSizes();
@@ -1190,7 +1277,7 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      */
     public void notifyAdapterItemRangeInserted(int position, int itemCount) {
         // handle our extensions
-        for (IAdapterExtension<Item> ext : mExtensions) {
+        for (IAdapterExtension<Item> ext : mExtensions.values()) {
             ext.notifyAdapterItemRangeInserted(position, itemCount);
         }
         cacheSizes();
@@ -1214,7 +1301,7 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      */
     public void notifyAdapterItemRangeRemoved(int position, int itemCount) {
         // handle our extensions
-        for (IAdapterExtension<Item> ext : mExtensions) {
+        for (IAdapterExtension<Item> ext : mExtensions.values()) {
             ext.notifyAdapterItemRangeRemoved(position, itemCount);
         }
 
@@ -1230,7 +1317,7 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      */
     public void notifyAdapterItemMoved(int fromPosition, int toPosition) {
         // handle our extensions
-        for (IAdapterExtension<Item> ext : mExtensions) {
+        for (IAdapterExtension<Item> ext : mExtensions.values()) {
             ext.notifyAdapterItemMoved(fromPosition, toPosition);
         }
         notifyItemMoved(fromPosition, toPosition);
@@ -1274,7 +1361,7 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      */
     public void notifyAdapterItemRangeChanged(int position, int itemCount, @Nullable Object payload) {
         // handle our extensions
-        for (IAdapterExtension<Item> ext : mExtensions) {
+        for (IAdapterExtension<Item> ext : mExtensions.values()) {
             ext.notifyAdapterItemRangeChanged(position, itemCount, payload);
         }
         if (payload == null) {
@@ -1290,6 +1377,7 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      * @param holder the ViewHolder for which we want to retrieve the item
      * @return the Item found for this ViewHolder
      */
+    @SuppressWarnings("unchecked")
     public static <Item extends IItem> Item getHolderAdapterItem(@Nullable RecyclerView.ViewHolder holder) {
         if (holder != null) {
             Object tag = holder.itemView.getTag(com.mikepenz.fastadapter.R.id.fastadapter_item_adapter);
@@ -1311,6 +1399,7 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
      * @param position the position for which we want to retrieve the item
      * @return the Item found for the given position and that ViewHolder
      */
+    @SuppressWarnings("unchecked")
     public static <Item extends IItem> Item getHolderAdapterItem(@Nullable RecyclerView.ViewHolder holder, int position) {
         if (holder != null) {
             Object tag = holder.itemView.getTag(com.mikepenz.fastadapter.R.id.fastadapter_item_adapter);
@@ -1319,6 +1408,101 @@ public class FastAdapter<Item extends IItem> extends RecyclerView.Adapter<Recycl
             }
         }
         return null;
+    }
+
+    /**
+     * convenient helper method to get the Item from a holder via the defined tag
+     *
+     * @param holder the ViewHolder for which we want to retrieve the item
+     * @return the Item found for the given position and that ViewHolder
+     */
+    @SuppressWarnings("unchecked")
+    public static <Item extends IItem> Item getHolderAdapterItemTag(@Nullable RecyclerView.ViewHolder holder) {
+        if (holder != null) {
+            Object item = holder.itemView.getTag(com.mikepenz.fastadapter.R.id.fastadapter_item);
+            if (item instanceof IItem) {
+                return (Item) item;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * util function which recursively iterates over all items and subItems of the given adapter.
+     * It executes the given `predicate` on every item and will either stop if that function returns true, or continue (if stopOnMatch is false)
+     *
+     * @param predicate   the predicate to run on every item, to check for a match or do some changes (e.g. select)
+     * @param stopOnMatch defines if we should stop iterating after the first match
+     * @return Triple&lt;Boolean, IItem, Integer&gt; The first value is true (it is always not null), the second contains the item and the third the position (if the item is visible) if we had a match, (always false and null and null in case of stopOnMatch == false)
+     */
+    @NonNull
+    public Triple<Boolean, Item, Integer> recursive(AdapterPredicate<Item> predicate, boolean stopOnMatch) {
+        return recursive(predicate, 0, stopOnMatch);
+    }
+
+    /**
+     * util function which recursively iterates over all items and subItems of the given adapter.
+     * It executes the given `predicate` on every item and will either stop if that function returns true, or continue (if stopOnMatch is false)
+     *
+     * @param predicate           the predicate to run on every item, to check for a match or do some changes (e.g. select)
+     * @param globalStartPosition the start position at which we star tto recursively iterate over the items. (This will not stop at the end of a sub hierarchy!)
+     * @param stopOnMatch         defines if we should stop iterating after the first match
+     * @return Triple&lt;Boolean, IItem, Integer&gt; The first value is true (it is always not null), the second contains the item and the third the position (if the item is visible) if we had a match, (always false and null and null in case of stopOnMatch == false)
+     */
+    @NonNull
+    public Triple<Boolean, Item, Integer> recursive(AdapterPredicate<Item> predicate, int globalStartPosition, boolean stopOnMatch) {
+        for (int i = globalStartPosition; i < getItemCount(); i++) {
+            //retrieve the item + it's adapter
+            RelativeInfo<Item> relativeInfo = getRelativeInfo(i);
+            Item item = relativeInfo.item;
+
+            if (predicate.apply(relativeInfo.adapter, i, item, i) && stopOnMatch) {
+                return new Triple<>(true, item, i);
+            }
+
+            if (item instanceof IExpandable) {
+                Triple<Boolean, Item, Integer> res = FastAdapter.recursiveSub(relativeInfo.adapter, i, (IExpandable) item, predicate, stopOnMatch);
+                if (res.first && stopOnMatch) {
+                    return res;
+                }
+            }
+        }
+
+        return new Triple<>(false, null, null);
+    }
+
+    /**
+     * Util function which recursively iterates over all items of a `IExpandable` parent if and only if it is `expanded` and has `subItems`
+     * This is usually only used in
+     *
+     * @param lastParentAdapter  the last `IAdapter` managing the last (visible) parent item (that might also be a parent of a parent, ..)
+     * @param lastParentPosition the global position of the last (visible) parent item, holding this sub item (that might also be a parent of a parent, ..)
+     * @param parent             the `IExpandableParent` to start from
+     * @param predicate          the predicate to run on every item, to check for a match or do some changes (e.g. select)
+     * @param stopOnMatch        defines if we should stop iterating after the first match
+     * @param <Item>             the type of the `Item`
+     * @return Triple&lt;Boolean, IItem, Integer&gt; The first value is true (it is always not null), the second contains the item and the third the position (if the item is visible) if we had a match, (always false and null and null in case of stopOnMatch == false)
+     */
+    @SuppressWarnings("unchecked")
+    public static <Item extends IItem> Triple<Boolean, Item, Integer> recursiveSub(IAdapter<Item> lastParentAdapter, int lastParentPosition, IExpandable parent, AdapterPredicate<Item> predicate, boolean stopOnMatch) {
+        //in case it's expanded it can be selected via the normal way
+        if (!parent.isExpanded() && parent.getSubItems() != null) {
+            for (int ii = 0; ii < parent.getSubItems().size(); ii++) {
+                Item sub = (Item) parent.getSubItems().get(ii);
+
+                if (predicate.apply(lastParentAdapter, lastParentPosition, sub, -1) && stopOnMatch) {
+                    return new Triple<>(true, sub, null);
+                }
+
+                if (sub instanceof IExpandable) {
+                    Triple<Boolean, Item, Integer> res = FastAdapter.recursiveSub(lastParentAdapter, lastParentPosition, (IExpandable) sub, predicate, stopOnMatch);
+                    if (res.first) {
+                        return res;
+                    }
+                }
+            }
+        }
+        return new Triple<>(false, null, null);
     }
 
     /**

@@ -1,9 +1,12 @@
 package com.mikepenz.fastadapter.utils;
 
+import com.mikepenz.fastadapter.IAdapterNotifier;
 import com.mikepenz.fastadapter.IItem;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 /**
  * The default item list implementation
@@ -44,7 +47,9 @@ public class DefaultItemListImpl<Item extends IItem> extends DefaultItemList<Ite
     @Override
     public void remove(int position, int preItemCount) {
         mItems.remove(position - preItemCount);
-        getFastAdapter().notifyAdapterItemRemoved(position);
+        if (getFastAdapter() != null) {
+            getFastAdapter().notifyAdapterItemRemoved(position);
+        }
     }
 
     @Override
@@ -57,7 +62,9 @@ public class DefaultItemListImpl<Item extends IItem> extends DefaultItemList<Ite
         for (int i = 0; i < saveItemCount; i++) {
             mItems.remove(position - preItemCount);
         }
-        getFastAdapter().notifyAdapterItemRangeRemoved(position, saveItemCount);
+        if (getFastAdapter() != null) {
+            getFastAdapter().notifyAdapterItemRangeRemoved(position, saveItemCount);
+        }
     }
 
     @Override
@@ -65,7 +72,9 @@ public class DefaultItemListImpl<Item extends IItem> extends DefaultItemList<Ite
         Item item = mItems.get(fromPosition - preItemCount);
         mItems.remove(fromPosition - preItemCount);
         mItems.add(toPosition - preItemCount, item);
-        getFastAdapter().notifyAdapterItemMoved(fromPosition, toPosition);
+        if (getFastAdapter() != null) {
+            getFastAdapter().notifyAdapterItemMoved(fromPosition, toPosition);
+        }
     }
 
     @Override
@@ -77,7 +86,9 @@ public class DefaultItemListImpl<Item extends IItem> extends DefaultItemList<Ite
     public void clear(int preItemCount) {
         int size = mItems.size();
         mItems.clear();
-        getFastAdapter().notifyAdapterItemRangeRemoved(preItemCount, size);
+        if (getFastAdapter() != null) {
+            getFastAdapter().notifyAdapterItemRangeRemoved(preItemCount, size);
+        }
     }
 
     @Override
@@ -86,27 +97,59 @@ public class DefaultItemListImpl<Item extends IItem> extends DefaultItemList<Ite
     }
 
     @Override
-    public void set(int position, Item item) {
-        mItems.set(position, item);
-        getFastAdapter().notifyAdapterItemInserted(position);
+    public void set(int position, Item item, int preItemCount) {
+        mItems.set(position - preItemCount, item);
+        if (getFastAdapter() != null) {
+            getFastAdapter().notifyAdapterItemChanged(position);
+        }
     }
 
     @Override
     public void addAll(List<Item> items, int preItemCount) {
         int countBefore = mItems.size();
         mItems.addAll(items);
-        getFastAdapter().notifyAdapterItemRangeInserted(preItemCount + countBefore, items.size());
+        if (getFastAdapter() != null) {
+            getFastAdapter().notifyAdapterItemRangeInserted(preItemCount + countBefore, items.size());
+        }
     }
 
     @Override
     public void addAll(int position, List<Item> items, int preItemCount) {
         mItems.addAll(position - preItemCount, items);
-        getFastAdapter().notifyAdapterItemRangeInserted(position, items.size());
+        if (getFastAdapter() != null) {
+            getFastAdapter().notifyAdapterItemRangeInserted(position, items.size());
+        }
     }
 
     @Override
-    public void setNewList(List<Item> items) {
+    public void set(List<Item> items, int preItemCount, @Nullable IAdapterNotifier adapterNotifier) {
+        //get sizes
+        int newItemsCount = items.size();
+        int previousItemsCount = mItems.size();
+
+        //make sure the new items list is not a reference of the already mItems list
+        if (items != mItems) {
+            //remove all previous items
+            if (!mItems.isEmpty()) {
+                mItems.clear();
+            }
+
+            //add all new items to the list
+            mItems.addAll(items);
+        }
+        if (getFastAdapter() == null) return;
+        //now properly notify the adapter about the changes
+        if (adapterNotifier == null) {
+            adapterNotifier = IAdapterNotifier.DEFAULT;
+        }
+        adapterNotifier.notify(getFastAdapter(), newItemsCount, previousItemsCount, preItemCount);
+    }
+
+    @Override
+    public void setNewList(List<Item> items, boolean notify) {
         mItems = new ArrayList<>(items);
-        getFastAdapter().notifyAdapterDataSetChanged();
+        if (getFastAdapter() != null && notify) {
+            getFastAdapter().notifyAdapterDataSetChanged();
+        }
     }
 }
