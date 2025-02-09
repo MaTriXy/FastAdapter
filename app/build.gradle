@@ -1,17 +1,20 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
 apply plugin: 'realm-android'
-//wrap with try and catch so the build is working even if the signing stuff is missing
-try {
-    apply from: '../../../signing.gradle'
-} catch (ex) {
+apply plugin: 'com.mikepenz.aboutlibraries.plugin'
+
+if (getSigningFile() != null) {
+    apply from: "${getSigningFile()}"
 }
 
 android {
     compileSdkVersion setup.compileSdk
     buildToolsVersion setup.buildTools
+    ndkVersion "21.3.6528147"
 
     defaultConfig {
-        minSdkVersion setup.minSdk
+        minSdkVersion 21
         targetSdkVersion setup.targetSdk
         versionCode release.versionCode
         versionName release.versionName
@@ -23,16 +26,14 @@ android {
     buildTypes {
         debug {
             versionNameSuffix "-DEBUG"
-            try {
+            if (getSigningFile() != null) {
                 signingConfig signingConfigs.debug
-            } catch (ex) {
             }
             minifyEnabled false
         }
         release {
-            try {
+            if (getSigningFile() != null) {
                 signingConfig signingConfigs.release
-            } catch (ex) {
             }
             zipAlignEnabled true
             minifyEnabled false
@@ -41,57 +42,93 @@ android {
     lintOptions {
         abortOnError false
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+    packagingOptions {
+        exclude 'META-INF/library-core_release.kotlin_module'
+        exclude 'META-INF/library_release.kotlin_module'
+    }
+    dexOptions {
+        javaMaxHeapSize = "4G"
+    }
+
+    buildFeatures {
+        viewBinding true
+        dataBinding true
+    }
+}
+
+kapt {
+    generateStubs = true
+}
+
+repositories {
+    maven {
+        url "https://jitpack.io"
+        content {
+            includeGroup "com.github.MFlisar"
+            includeGroup "com.github.turing-tech"
+        }
+    }
+    maven {
+        url "https://oss.sonatype.org/content/repositories/snapshots/"
+        content { includeGroup "com.mikepenz.thirdparty" }
+    }
 }
 
 dependencies {
-    implementation 'com.android.support:multidex:1.0.3'
+    implementation 'androidx.multidex:multidex:2.0.1'
 
-    implementation project(':library-core')
-    implementation project(':library')
-    implementation project(':library-extensions')
-    implementation project(':library-extensions-expandable')
+    implementation project(':fastadapter')
+    implementation project(':fastadapter-extensions-binding')
+    implementation project(':fastadapter-extensions-diff')
+    implementation project(':fastadapter-extensions-drag')
+    implementation project(':fastadapter-extensions-expandable')
+    implementation project(':fastadapter-extensions-scroll')
+    implementation project(':fastadapter-extensions-swipe')
+    implementation project(':fastadapter-extensions-ui')
+    implementation project(':fastadapter-extensions-utils')
+    implementation project(':fastadapter-extensions-paged')
 
-    implementation "androidx.appcompat:appcompat:${versions.androidX}"
-    implementation "androidx.recyclerview:recyclerview:${versions.androidX}"
-    implementation "androidx.cardview:cardview:${versions.androidX}"
-    implementation "com.google.android.material:material:${versions.androidX}"
-
-    // view binding lib?
-    implementation 'com.android.support:support-annotations:27.1.1'
-
-    // used to base on some backwards compatible themes
-    // contains util classes to support various android versions, and clean up code
-    // comes with the awesome "Holder"-Pattern
-    // https://github.com/mikepenz/Materialize
-    implementation 'com.mikepenz:materialize:1.2.0'
+    implementation "androidx.cardview:cardview:${versions.cardview}"
+    implementation "com.google.android.material:material:${versions.material}"
 
     // used to provide out of the box icon font support. simplifies development,
     // and provides scalable icons. the core is very very light
     // https://github.com/mikepenz/Android-Iconics
-    implementation 'com.mikepenz:iconics-core:3.1.0'
-    implementation "com.mikepenz:iconics-views:3.1.0"
+    implementation "com.mikepenz:iconics-core:${versions.iconics}"
+    implementation "com.mikepenz:iconics-views:${versions.iconics}"
 
     //used to generate the drawer on the left
     //https://github.com/mikepenz/MaterialDrawer
-    implementation('com.mikepenz:materialdrawer:6.1.0') {
-        transitive = true
-        exclude group: "com.mikepenz"
+    implementation("com.mikepenz:materialdrawer:${versions.materialdrawer}") {
+        exclude module: "fastadapter"
+        exclude module: "fastadapter-extensions-expandable"
+    }
+    implementation("com.mikepenz:materialdrawer-iconics:${versions.materialdrawer}") {
+        exclude module: "fastadapter"
+        exclude module: "fastadapter-extensions-expandable"
     }
     //used to provide different itemAnimators for the RecyclerView
     //https://github.com/mikepenz/ItemAnimators
     implementation 'com.mikepenz:itemanimators:1.1.0'
     //used to generate the Open Source section
     //https://github.com/mikepenz/AboutLibraries
-    implementation('com.mikepenz:aboutlibraries:6.2.0') {
-        transitive = true
-        exclude group: "com.mikepenz"
+    implementation("com.mikepenz:aboutlibraries:${versions.aboutlib}") {
+        exclude module: "fastadapter"
+        exclude module: "fastadapter-extensions-expandable"
     }
     //used to display the icons in the drawer
     //https://github.com/mikepenz/Android-Iconics
-    implementation 'com.mikepenz:material-design-iconic-typeface:2.2.0.1@aar'
-    implementation 'com.mikepenz:community-material-typeface:1.7.22.1@aar'
-    implementation 'com.mikepenz:google-material-typeface:3.0.1.1.original@aar'
-    implementation 'com.mikepenz:fontawesome-typeface:4.7.0.0@aar'
+    implementation 'com.mikepenz:material-design-iconic-typeface:2.2.0.8-kotlin@aar'
+    implementation 'com.mikepenz:community-material-typeface:5.8.55.0-kotlin@aar'
+    implementation 'com.mikepenz:google-material-typeface:4.0.0.2-kotlin@aar'
+    implementation 'com.mikepenz:fontawesome-typeface:5.13.3.0-kotlin@aar'
 
     //Used for the StickyHeaderSample
     //https://github.com/timehop/sticky-headers-recyclerview
@@ -101,46 +138,42 @@ dependencies {
 
     //Used to provide the FastScrollBar
     //https://github.com/krimin-killr21/MaterialScrollBar
-    implementation 'com.turingtechnologies.materialscrollbar:lib:10.0.1'
-
-    //https://github.com/JakeWharton/butterknife
-    implementation 'com.jakewharton:butterknife:9.0.0-SNAPSHOT'
-    annotationProcessor 'com.jakewharton:butterknife-compiler:9.0.0-SNAPSHOT'
+    implementation 'com.github.turing-tech:MaterialScrollBar:13.3.4'
 
     //used to load the images in the ImageListSample
-    //https://github.com/bumptech/glide
-    implementation 'com.github.bumptech.glide:glide:3.8.0'
+    //https://github.com/coil-kt/coil
+    implementation 'io.coil-kt:coil:2.2.1'
 
     //Used to provide the drag selection like google photos
-    implementation 'com.github.MFlisar:DragSelectRecyclerView:0.2'
-
-    //mopub sdk to showcase the usage of the mopub adapter
-    implementation('com.mopub:mopub-sdk:4.7.1@aar') {
-        transitive = true
-        exclude group: "com.google.android.exoplayer"
-    }
+    implementation 'com.github.MFlisar:DragSelectRecyclerView:0.3'
 
     //Used to async operations
-    implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
-    implementation 'io.reactivex.rxjava2:rxjava:2.1.9'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.21'
+
+    compileOnly "com.google.code.findbugs:jsr305:3.0.2"
+
+    implementation "androidx.room:room-runtime:${versions.room}"
+    kapt "androidx.room:room-compiler:${versions.room}"
 
     configurations.all {
-        resolutionStrategy.force "com.mikepenz:materialize:1.2.0-rc01"
-        resolutionStrategy.force "com.mikepenz:iconics-core:3.1.0-rc01"
-        resolutionStrategy.force "com.mikepenz:aboutlibraries:6.2.0-rc01"
-        resolutionStrategy.force "androidx.appcompat:appcompat:${versions.androidX}"
-        resolutionStrategy.force "androidx.recyclerview:recyclerview:${versions.androidX}"
-        resolutionStrategy.force "androidx.cardview:cardview:${versions.androidX}"
-        resolutionStrategy.force "com.google.android.material:material:${versions.androidX}"
+        resolutionStrategy.force "com.mikepenz:iconics-core:${versions.iconics}"
+        resolutionStrategy.force "com.mikepenz:iconics-views:${versions.iconics}"
+        resolutionStrategy.force "com.mikepenz:aboutlibraries-core:${versions.aboutlib}"
+        resolutionStrategy.force "com.mikepenz:aboutlibraries:${versions.aboutlib}"
+        resolutionStrategy.force "androidx.appcompat:appcompat:${versions.appcompat}"
+        resolutionStrategy.force "androidx.recyclerview:recyclerview:${versions.recyclerView}"
+        resolutionStrategy.force "androidx.cardview:cardview:${versions.cardview}"
+        resolutionStrategy.force "com.google.android.material:material:${versions.material}"
     }
 }
 
 buildscript {
     repositories {
-        google()
-        jcenter()
+        mavenCentral()
     }
+
     dependencies {
-        classpath "io.realm:realm-gradle-plugin:4.1.1"
+        classpath "io.realm:realm-gradle-plugin:10.12.0"
     }
 }

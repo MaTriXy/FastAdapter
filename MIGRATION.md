@@ -1,11 +1,63 @@
 ### Upgrade Notes
 
+#### v5.x.y
+
+v5 brings some general API cleanup which should make the usage easier. Removed generic type to simplify code.
+
+- Usages of the `FastAdapter.with()` method have been simplified
+
+```kotlin
+// old
+FastAdapter.with<ExpandableTestItem, IAdapter<ExpandableTestItem>>(itemAdapter)
+// v5
+FastAdapter.with(itemAdapter)
+```
+
+- Correct API specification for the bind method. (The payload for bindView should be immutable)
+
+```kotlin
+// old
+override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int, payloads: MutableList<Any>)
+// v5
+override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int, payloads: List<Any>)
+```
+
+#### v4.x.y
+
+v4 is a huge release changing most of the codebase to Kotlin. This comes with many refactorings, and as a result of that with many breaking API changes. 
+We put a lot of focus on type safety with this release, as such this release is a lot more strict and tries to prevent as many potential bad type mix-ups as possible.
+
+* For compatibility, most existing static fields and functions remain static in Java. For newer functions, accessing from Java may require using the `Companion` class. For instance, `FastAdapter.example()` becomes `FastAdapter.Companion.example()`
+* The `IItem` interface now requires a type specification. E.g. `IItem<RecyclerView.ViewHolder>`
+* The `SelectExtension` is no longer default enabled and wrapped in the `FastAdapter` use its API standalone. E.g.: `selectExtension.setSelectable(true)`, ...
+* Extensions can be retrieved via `getOrCreateExtension`. `SelectExtension<?> selectExtension = (SelectExtension<?>) mFastAdapter.getOrCreateExtension(SelectExtension.class)`
+* Most API methods which were possible to be chained in the previous releases are now standard properties. So use `set` / `get`. E.g.: `sampleItem.setSelectable(false)`, `sampleItem.setIdentifier(1)`, ...
+* `FastAdapterDiffUtil` no longer directly takes the `FastItemAdapter`, provide the `ItemAdapter` or `ModelAdapter` instead.
+* The `IItem` interface now only requires the `ViewHolder` type.
+* The `IExpandable` interface was changed and now extends `IParentItem` and `ISubItem`.
+* The `ISubItem` interface now only requires the `ViewHolder` type.
+* The `IParentItem` interface only requires the `ViewHolder` type.
+* `IIdentifyable` interface does not require any type anymore.
+
+The v4 release brings a new more modular setup. Allowing to be a lot more precise on what to take from the `FastAdapter`. 
+Due to the new modules some packages of various classes might have changes. Check out here on GitHub for the new location of classes.
+
+The new modules are:
+- com.mikepenz:fastadapter-extensions-diff // diff util helpers
+- com.mikepenz:fastadapter-extensions-drag // drag support
+- com.mikepenz:fastadapter-extensions-scroll // scroll helpers
+- com.mikepenz:fastadapter-extensions-swipe // swipe support
+- com.mikepenz:fastadapter-extensions-ui // pre-defined ui components
+- com.mikepenz:fastadapter-extensions-utils // needs the `expandable`, `drag` and `scroll` extension.
+
+If you have any issues during the migration, or any questions come up please open a github issue so we can improve the migration guide or the documentation.
+
 #### v3.3.x
 * Upgraded the library to use `androidX` dependencies. This means your project will need to depend on `androidX` dependencies too. If you still use appcompat please consider using a version older than v3.3.x. 
 * Further details about migrating to androidX and a overview can be found on the official docs. https://developer.android.com/topic/libraries/support-library/refactor
 
 #### v3.2.4
-* Adjusted the `set(int position, Item item, int preItemCount)` to include the `preItemCount` to corretly notify the adapter about the changed element.
+* Adjusted the `set(int position, Item item, int preItemCount)` to include the `preItemCount` to correctly notify the adapter about the changed element.
 
 #### v3.2.3
 * The `ActionModeHelper` requires a `FastAdapter` with the `SelectExtension` applied. This is done in current versions via `withSelectable(true)`. Make sure this is called before creating the `ActionModeHelper`.
@@ -104,17 +156,17 @@ public ViewHolder getViewHolder(View v) {
 
 **SHORT OVERVIEW**
 * If you have items implemented by using the interface you have to implement the new methods (**unbindView**)
-* If you have expandable items make sure to adjust the Model type definitions as metioned below. Check out the `AbstractExpandableItem` to simplify this for you
+* If you have expandable items make sure to adjust the Model type definitions as mentioned below. Check out the `AbstractExpandableItem` to simplify this for you
 * If you use the `MaterialDrawer`, the `AboutLibraries` in your project, please make sure to update them so the changed interfaces do not cause conflicts
 
 **DETAILED**
 * New `unbindView` method was added to the `IItem` --> This method is called when the current item is no longer set and before the `ViewHolder` is used for the next item
  * You should move your view resetting logic here, or for example glide image loading canceling
 * `IExpandable` Model types changes
- * it is now required to define the type which will be used for the subItems. This can be an implementation or `ISubItem`. We now require this, as we will keep the references between childs, and parents.
+ * it is now required to define the type which will be used for the subItems. This can be an implementation or `ISubItem`. We now require this, as we will keep the references between children, and parents.
  * this allows more optimizations, and many additional usecases
 * New `ISubItem` interface added 
- * items serving as subitems, have to implement this. 
+ * items serving as subItems, have to implement this. 
 * New `AbstractExpandableItem` added, which combines `IExpandable` and `ISubItem` with an `AbstractItem` to simplify your life
 * A new `SubItemUtil` was introduced which simplifies some use cases when working with expandable / collapsing lists
 

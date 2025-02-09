@@ -1,31 +1,50 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
+    apply from: 'configurations.gradle'
+
     ext {
         release = [
-                versionName: "3.3.1",
-                versionCode: 3301
+                versionName: "5.7.0",
+                versionCode: 5070
         ]
 
         setup = [
-                compileSdk: 28,
-                buildTools: "28.0.2",
-                minSdk    : 14,
-                targetSdk : 28
+                gradleTools: '7.3.0',
+                compileSdk : 33,
+                buildTools : "33.0.0",
+                minSdk     : 16,
+                targetSdk  : 33
         ]
 
         versions = [
-                androidX: '1.0.0'
+                recyclerView    : '1.2.1',
+                material        : '1.6.1',
+                appcompat       : '1.5.1',
+                drawerlayout    : '1.1.0',
+                constraintLayout: '2.1.0',
+                cardview        : '1.0.0',
+                kotlin          : '1.7.20',
+                iconics         : '5.2.8',
+                materialdrawer  : '9.0.1',
+                aboutlib        : '10.5.0',
+                roboelectric    : '4.8.2',
+                detekt          : '1.18.1',
+                paging          : "2.1.2",
+                room            : "2.4.3",
+                lifecycle       : "2.3.1"
         ]
     }
 
     repositories {
+        gradlePluginPortal()
+        mavenCentral()
         google()
-        jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.3.0-alpha12'
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
+        classpath "com.android.tools.build:gradle:${setup.gradleTools}"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
+        classpath "io.gitlab.arturbosch.detekt:detekt-gradle-plugin:${versions.detekt}"
+        classpath "com.mikepenz.aboutlibraries.plugin:aboutlibraries-plugin:${versions.aboutlib}"
     }
 }
 
@@ -33,9 +52,16 @@ allprojects {
     group "com.mikepenz"
 
     repositories {
+        mavenCentral()
         google()
-        jcenter()
-        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-        maven { url "https://jitpack.io" }
     }
 }
+
+subprojects {
+    apply from: "$rootDir/detekt.gradle"
+
+    dependencies {
+        detektPlugins "io.gitlab.arturbosch.detekt:detekt-formatting:${versions.detekt}"
+    }
+}
+

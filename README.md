@@ -1,244 +1,289 @@
-# FastAdapter  [![Download](https://api.bintray.com/packages/mikepenz/maven/com.mikepenz%3Afastadapter/images/download.svg?version=3.2.7) ](https://bintray.com/mikepenz/maven/com.mikepenz%3Afastadapter/3.2.7/link) [![Join the chat at https://gitter.im/mikepenz/fastadapter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/mikepenz/fastadapter?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+# FastAdapter
 
-> The RecyclerView is one of the most used widgets in the Android world, and with it you have to implement an Adapter which provides the items for the view. Most use cases require the same base logic, but require you to write everything again and again.
+The FastAdapter is here to simplify creating adapters for RecyclerViews. Don't worry about the adapter anymore. Just write the logic for how your view/item should look like, and you are done.
+It's blazing fast, minimizing the code you need to write, and is easy to extend.
 
-The FastAdapter is here to simplify this process. You don't have to worry about the adapter anymore. Just write the logic for how your view/item should look like, and you are done.
-This library has a fast and highly optimized core which provides core functionality, most apps require. It also prevents common mistakes by taking away those steps from the devs. 
-Beside being blazing fast, minimizing the code you need to write, it is also really easy to extend. Just provide another adapter implementation, hook into the adapter chain, custom select / deselection behaviors. Everything is possible.
+-------
 
-## A quick overview:
+<p align="center">
+    <a href="#whats-included-">What's included 🚀</a> &bull;
+    <a href="#setup">Setup 🛠️</a> &bull;
+    <a href="MIGRATION.md">Migration Guide 🧬</a> &bull;
+    <a href="#used-by">Used by</a> &bull;
+    <a href="https://play.google.com/store/apps/details?id=com.mikepenz.fastadapter.app">Sample App</a>
+</p>
+
+-------
+
+### What's included 🚀
+- Core module 100% in Kotlin
 - Click / Long-Click listeners
-- Selection / Multi-Selection ([MultiselectSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/MultiselectSampleActivity.java), [CheckBoxSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/CheckBoxSampleActivity.java), [RadioButtonSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/RadioButtonSampleActivity.java))
-- Expandable items ([ExpandableSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/ExpandableSampleActivity.java), [IconGridSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/IconGridActivity.java) ,[AdvancedSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/AdvancedSampleActivity.java))
+- Selection / Multi-Selection ([MultiselectSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/MultiselectSampleActivity.kt), [CheckBoxSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/CheckBoxSampleActivity.kt), [RadioButtonSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/RadioButtonSampleActivity.kt))
+- Expandable items ([ExpandableSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/ExpandableSampleActivity.kt), [IconGridSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/IconGridActivity.kt) ,[AdvancedSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/AdvancedSampleActivity.kt))
 - Write less code, get better results
 - Highly optimized code
-- Simple Drag & Drop ([SimpleItemListSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/SimpleItemListActivity.java))
-- Headers ([StickyHeaderSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/StickyHeaderSampleActivity.java), [AdvancedSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/AdvancedSampleActivity.java))
+- Simple Drag & Drop ([SimpleItemListSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/SimpleItemListActivity.kt))
+- Headers ([StickyHeaderSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/StickyHeaderSampleActivity.kt), [AdvancedSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/AdvancedSampleActivity.kt))
 - Footers
-- Filter ([SimpleItemListSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/SimpleItemListActivity.java))
+- Filter ([SimpleItemListSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/SimpleItemListActivity.kt))
 - Includes suggestions from the Android Team
 - Easily extensible
-- Endless Scroll ([EndlessScrollSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/EndlessScrollListActivity.java))
-- "Leave-Behind"-Pattern ([SwipeListSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/SwipeListActivity.java))
-- Split item view and model ([ModelItem](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/ModelItemActivity.java), [MultiTypeModelItem](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/MultiTypeModelItemActivity.java))
-- Chain other Adapters ([SimpleItemListSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/SimpleItemListActivity.java), [StickyHeaderSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/StickyHeaderSampleActivity.java))
+- Endless Scroll ([EndlessScrollSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/EndlessScrollListActivity.kt))
+- "Leave-Behind"-Pattern ([SwipeListSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/SwipeListActivity.kt))
+- Split item view and model ([ModelItem](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/ModelItemActivity.kt), [MultiTypeModelItem](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/MultiTypeModelItemActivity.kt))
+- Chain other Adapters ([SimpleItemListSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/SimpleItemListActivity.kt), [StickyHeaderSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/StickyHeaderSampleActivity.kt))
 - Comes with useful Helpers
- - ActionModeHelper ([MultiselectSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/MultiselectSampleActivity.java))
- - UndoHelper ([MultiselectSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/MultiselectSampleActivity.java))
+ - ActionModeHelper ([MultiselectSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/MultiselectSampleActivity.kt))
+ - UndoHelper ([MultiselectSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/MultiselectSampleActivity.kt))
+- FastScroller (external lib) ([SimpleItemListSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/SimpleItemListActivity.kt))
+- Paging (via Jetpack paging lib) ([PagedActivity](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/PagedActivity.kt))
  - More to come...
-- FastScroller (external lib) ([SimpleItemListSample](https://github.com/mikepenz/FastAdapter/blob/develop/app/src/main/java/com/mikepenz/fastadapter/app/SimpleItemListActivity.java))
 
 # Preview
-## Demo
-You can try it out here [Google Play](https://play.google.com/store/apps/details?id=com.mikepenz.fastadapter.app) (or download the latest release from GitHub)
 
-## Screenshots
+## Screenshots 🎉
 ![Image](https://raw.githubusercontent.com/mikepenz/FastAdapter/develop/DEV/github/screenshots1.jpg)
 
+# Setup
 
-# Include in your project
-## Using Maven
+## Latest releases 🛠
+
+- Kotlin | [v5.7.0](https://github.com/mikepenz/FastAdapter/tree/v5.7.0)
+- [Deprecated] Java && AndroidX | [v3.3.1](https://github.com/mikepenz/FastAdapter/tree/v3.3.1)
+- [Deprecated] Java && AppCompat | [v3.2.9](https://github.com/mikepenz/FastAdapter/tree/v3.2.9)
+
+## Provide the gradle dependency
 
 The library is split up into core, commons, and extensions. The core functions are included in the following dependency.
 ```gradle
-implementation 'com.mikepenz:fastadapter:3.3.1'
+implementation "com.mikepenz:fastadapter:${latestFastAdapterRelease}"
 implementation "androidx.appcompat:appcompat:${androidX}"
 implementation "androidx.recyclerview:recyclerview:${androidX}"
 ```
 
-The commons package comes with some useful helpers (which are not needed in all cases) This one for example includes the `FastItemAdapter`
-```gradle
-implementation 'com.mikepenz:fastadapter-commons:3.3.1'
-```
-
 Expandable support is included and can be added via this
 ```gradle
-implementation 'com.mikepenz:fastadapter-extensions-expandable:3.3.1'
-//The tiny Materialize library used for its useful helper classes
-implementation 'com.mikepenz:materialize:${latestVersion}' // at least 1.2.0
+implementation "com.mikepenz:fastadapter-extensions-expandable:${latestFastAdapterRelease}"
 ```
 
-Many helper classes are included in the following dependency. (This functionality also needs the `Expandable` extension
+Many helper classes are included in the following dependency.
 ```gradle
-implementation 'com.mikepenz:fastadapter-extensions:3.3.1'
+implementation "com.mikepenz:fastadapter-extensions-binding:${latestFastAdapterRelease}" // view binding helpers
+implementation "com.mikepenz:fastadapter-extensions-diff:${latestFastAdapterRelease}" // diff util helpers
+implementation "com.mikepenz:fastadapter-extensions-drag:${latestFastAdapterRelease}" // drag support
+implementation "com.mikepenz:fastadapter-extensions-paged:${latestFastAdapterRelease}" // paging support
+implementation "com.mikepenz:fastadapter-extensions-scroll:${latestFastAdapterRelease}" // scroll helpers
+implementation "com.mikepenz:fastadapter-extensions-swipe:${latestFastAdapterRelease}" // swipe support
+implementation "com.mikepenz:fastadapter-extensions-ui:${latestFastAdapterRelease}" // pre-defined ui components
+implementation "com.mikepenz:fastadapter-extensions-utils:${latestFastAdapterRelease}" // needs the `expandable`, `drag` and `scroll` extension.
+
+// required for the ui components and the utils
 implementation "com.google.android.material:material:${androidX}"
-//The tiny Materialize library used for its useful helper classes
-implementation 'com.mikepenz:materialize:${latestVersion}' // at least 1.2.0
 ```
-
-## v3.3.x
-> Upgrades to use androidX dependencies. Use a version smaller than 3.3.x to use with appCompat dependencies.
-
-## v3.x.x
-> v3 is a huge new release and comes with a big set of new changes. If you previously used the `FastAdapter` and head over to the [MIGRATION GUIDE](https://github.com/mikepenz/FastAdapter/blob/develop/MIGRATION.md) on how to get started with v3.
-> In case you are searching [v2.x head over here to it here](https://github.com/mikepenz/FastAdapter/tree/v2.6.3).
 
 ## How to use
-### 1. Implement your item (the easy way)
+### 1. Implement your item
+#### 1a. Implement your item as usual (the easy way)
 Just create a class which extends the `AbstractItem` as shown below. Implement the methods, and your item is ready.
-```java
-public class SimpleItem extends AbstractItem<SimpleItem, SimpleItem.ViewHolder> {
-    public String name;
-    public String description;
+```kotlin
+open class SimpleItem : AbstractItem<SimpleItem.ViewHolder>() {
+    var name: String? = null
+    var description: String? = null
 
-    //The unique ID for this type of item
-    @Override
-    public int getType() {
-        return R.id.fastadapter_sampleitem_id;
+    /** defines the type defining this item. must be unique. preferably an id */
+    override val type: Int
+        get() = R.id.fastadapter_sample_item_id
+
+    /** defines the layout which will be used for this item in the list */
+    override val layoutRes: Int
+        get() = R.layout.sample_item
+
+    override fun getViewHolder(v: View): ViewHolder {
+        return ViewHolder(v)
     }
 
-    //The layout to be used for this type of item
-    @Override
-    public int getLayoutRes() {
-        return R.layout.sample_item;
-    }
+    class ViewHolder(view: View) : FastAdapter.ViewHolder<SimpleItem>(view) {
+        var name: TextView = view.findViewById(R.id.material_drawer_name)
+        var description: TextView = view.findViewById(R.id.material_drawer_description)
 
-    @Override
-    public ViewHolder getViewHolder(@NonNull View v) {
-        return new ViewHolder(v);
-    }
-
-    /**
-     * our ViewHolder
-     */
-    protected static class ViewHolder extends FastAdapter.ViewHolder<SimpleItem> {
-        @BindView(R.id.material_drawer_name)
-        TextView name;
-        @BindView(R.id.material_drawer_description)
-        TextView description;
-
-        public ViewHolder(View view) {
-            super(view);
-            ButterKnife.bind(this, view);
+        override fun bindView(item: SimpleItem, payloads: List<Any>) {
+            name.text = item.name
+            description.text = item.name
         }
 
-        @Override
-        public void bindView(SimpleItem item, List<Object> payloads) {
-            StringHolder.applyTo(item.name, name);
-            StringHolder.applyToOrHide(item.description, description);
-        }
-
-        @Override
-        public void unbindView(SimpleItem item) {
-            name.setText(null);
-            description.setText(null);
+        override fun unbindView(item: SimpleItem) {
+            name.text = null
+            description.text = null
         }
     }
 }
+
 ```
+
+#### 1b. Implement item with ViewBinding (the easiest way)
+
+```kotlin
+class BindingIconItem : AbstractBindingItem<IconItemBinding>() {
+    var name: String? = null
+
+    override val type: Int
+        get() = R.id.fastadapter_icon_item_id
+
+    override fun bindView(binding: IconItemBinding, payloads: List<Any>) {
+        binding.name.text = name
+    }
+
+    override fun createBinding(inflater: LayoutInflater, parent: ViewGroup?): IconItemBinding {
+        return IconItemBinding.inflate(inflater, parent, false)
+    }
+}
+```
+Use the `binding` extension dependency in your application for this.
 
 ### 2. Set the Adapter to the RecyclerView
-```java
+```kotlin
 //create the ItemAdapter holding your Items
-ItemAdapter itemAdapter = new ItemAdapter();
+val itemAdapter = ItemAdapter<SimpleItem>()
 //create the managing FastAdapter, by passing in the itemAdapter
-FastAdapter fastAdapter = FastAdapter.with(itemAdapter);
+val fastAdapter = FastAdapter.with(itemAdapter)
 
 //set our adapters to the RecyclerView
-recyclerView.setAdapter(fastAdapter);
+recyclerView.setAdapter(fastAdapter)
 
 //set the items to your ItemAdapter
-itemAdapter.add(ITEMS);
+itemAdapter.add(ITEMS)
 ```
+
+### 3. Extensions
+
+By default the `FastAdapter` only provides basic functionality, which comes with the abstraction of items as `Item` and `Model`. 
+And the general functionality of adding/removing/modifying elements. To enable *selections*, or *expandables* the provided extensions need to be activated.
+
+#### 3.1. SelectExtension
+
+```kotlin
+// Gets (or creates and attaches if not yet existing) the extension from the given `FastAdapter`
+val selectExtension = fastAdapter.getSelectExtension()
+// configure as needed
+selectExtension.isSelectable = true
+selectExtension.multiSelect = true
+selectExtension.selectOnLongClick = false
+// see the API of this class for more options.
+```
+
+#### 3.2. ExpandableExtension
+
+> This requires the `fastadapter-extensions-expandable` extension.
+
+```kotlin
+// Gets (or creates and attaches if not yet existing) the extension.
+val expandableExtension = fastAdapter.getExpandableExtension()
+// configure as needed
+expandableExtension.isOnlyOneExpandedItem = true
+```
+
+For further details scroll down to the `ExpandableItems` (under advanced usage) section.
 
 ### 3. Click listener
-```java
-fastAdapter.withSelectable(true);
-fastAdapter.withOnClickListener(new OnClickListener<Item>() {
-    @Override
-    public boolean onClick(View v, IAdapter<Item> adapter, Item item, int position) {
-       // Handle click here
-	return true;
-    }
-});
+```kotlin
+fastAdapter.onClickListener = { view, adapter, item, position ->
+    // Handle click here
+    false
+}
 ```
 
-
 ### 4. Click listeners for views inside your item
-```java
-//just add an `EventHook` to your `FastAdapter` by implementing either a `ClickEventHook`, `LongClickEventHook`, `TouchEventHook`, `CustomEventHook`
-fastItemAdapter.withEventHook(new ClickEventHook<SampleItem>() {
-    
-    @Nullable
-    @Override
-    public View onBind(@NonNull RecyclerView.ViewHolder viewHolder) {
+```kotlin
+// just add an `EventHook` to your `FastAdapter` by implementing either a `ClickEventHook`, `LongClickEventHook`, `TouchEventHook`, `CustomEventHook`
+fastAdapter.addEventHook(object : ClickEventHook<SimpleImageItem>() {
+    override fun onBind(viewHolder: RecyclerView.ViewHolder): View? {
         //return the views on which you want to bind this event
-        if (viewHolder instanceof SampleItem.ViewHolder) {
-            return ((ViewHolder) viewHolder).view;
-        }
-        return null;
+        return if (viewHolder is SimpleImageItem.ViewHolder) {
+            viewHolder.viewWhichReactsOnClick
+        } else {
+	    null
+	}
     }
 
-    @Override
-    public void onClick(View v, int position, FastAdapter<SampleItem> fastAdapter, SampleItem item) {
+    override fun onClick(v: View, position: Int, fastAdapter: FastAdapter<SimpleImageItem>, item: SimpleImageItem) {
         //react on the click event
     }
-});
+})
 ```
 
 ### 5. Filter 
-```java
-// Call this in onQueryTextSubmit() & onQueryTextChange() when using SearchView
-itemAdapter.filter("yourSearchTerm");
 
-itemAdapter.getItemFilter().withFilterPredicate(new IItemAdapter.Predicate<Item>() {
-    @Override
-    public boolean filter(Item item, CharSequence constraint) {
-	return item.getName().startsWith(String.valueOf(constraint));
-    }
-});
+```kotlin
+// Call this in onQueryTextSubmit() & onQueryTextChange() when using SearchView
+itemAdapter.filter("yourSearchTerm")
+itemAdapter.itemFilter.filterPredicate = { item: SimpleItem, constraint: CharSequence? ->
+    item.name?.text.toString().contains(constraint.toString(), ignoreCase = true)
+}
 ```
 `filter()` should return true for items to be retained and false for items to be removed.
 
 ### 6. Drag and drop
+
+> This requires the `fastadapter-extensions-drag` extension.
+
 First, attach `ItemTouchHelper` to RecyclerView.
-```java
-SimpleDragCallback dragCallback = new SimpleDragCallback(this);
-ItemTouchHelper touchHelper = new ItemTouchHelper(dragCallback);
-touchHelper.attachToRecyclerView(recyclerView);
+
+```kotlin
+val dragCallback = SimpleDragCallback()
+val touchHelper = ItemTouchHelper(dragCallback)
+touchHelper.attachToRecyclerView(recyclerView)
 ```
+
 Implement `ItemTouchCallback` interface in your Activity, and override the `itemTouchOnMove()` method.
-```java
-@Override
-   public boolean itemTouchOnMove(int oldPosition, int newPosition) {
-       Collections.swap(fastAdapter.getAdapterItems(), oldPosition, newPosition); // change position
-       fastAdapter.notifyAdapterItemMoved(oldPosition, newPosition);
-       return true;
-   }
+
+```kotlin
+override fun itemTouchOnMove(oldPosition: Int, newPosition: Int): Boolean {
+    DragDropUtil.onMove(fastItemAdapter.itemAdapter, oldPosition, newPosition) // change position
+    return true
+}
 ```
 
 ### 7. Using different ViewHolders (like HeaderView)
+
 Start by initializing your adapters:
-```java
-// Head is a model class for your header
-ItemAdapter<Header> headerAdapter = new ItemAdapter<>();
+
+```kotlin
+// Header is a model class for your header
+val headerAdapter = ItemAdapter<Header>()
 ```
+
 Initialize a Model FastAdapter:
-```java
-ItemAdapter<IItem> itemAdapter = new ItemAdapter<>();
+
+```kotlin
+val itemAdapter = GenericItemAdapter()
 ```
+
 Finally, set the adapter:
-```java
-FastAdapter fastAdapter = FastAdapter.with(headerAdapter, itemAdapter); //the order defines in which order the items will show up
-recyclerView.setAdapter(fastAdapter);
+
+```kotlin
+val fastAdapter: GenericFastAdapter = FastAdapter.with(headerAdapter, itemAdapter) //the order defines in which order the items will show up
+// alternative the super type of both item adapters can be used. e.g.:
+recyclerView.setAdapter(fastAdapter)
 ```
 
 ### 8. Infinite (endless) scrolling
+
 Create a FooterAdapter. We need this to display a loading ProgressBar at the end of our list. (Don't forget to pass it into `FastAdapter.with(..)`)
-```java
-ItemAdapter<ProgressItem> footerAdapter = new ItemAdapter<>();
+
+```kotlin
+val footerAdapter = ItemAdapter<ProgressItem>()
 ```
 Keep in mind that ProgressItem is provided by FastAdapter’s extensions.
-```java
-recyclerView.addOnScrollListener(new EndlessRecyclerOnScrollListener(footerAdapter) {
-    @Override
-    public void onLoadMore(int currentPage) {
-	footerAdapter.clear();
-	footerAdapter.add(new ProgressItem().withEnabled(false));
-	// Load your items here and add it to FastAdapter
-	fastAdapter.add(NEWITEMS);
+```kotlin
+recyclerView.addOnScrollListener(object : EndlessRecyclerOnScrollListener(footerAdapter) {
+     override fun onLoadMore(currentPage: Int) {
+         footerAdapter.clear()
+         footerAdapter.add(ProgressItem())
+         
+	 // Load your items here and add it to FastAdapter
+         itemAdapter.add(NEWITEMS)
     }
-});
+})
 ```
 
 For the complete tutorial and more features such as multi-select and CAB check out the [sample app](https://github.com/mikepenz/FastAdapter/tree/develop/app).
@@ -250,9 +295,8 @@ For the complete tutorial and more features such as multi-select and CAB check o
 ### ExpandableItems
 The `FastAdapter` comes with support for expandable items. After adding the dependency set up the `Expandable` extension via:
 
-```java
-expandableExtension = new ExpandableExtension<>();
-fastAdapter.addExtension(expandableExtension);
+```kotlin
+val expandableExtension = fastAdapter.getExpandableExtension()
 ```
 
 Expandable items have to implement the `IExpandable` interface, and the sub items the `ISubItem` interface. This allows better support.
@@ -260,44 +304,39 @@ The sample app provides sample implementations of those. (Those in the sample ar
 
 As of the way how `SubItems` and their state are handled it is highly recommended to use the `identifier` based `StateManagement`. Just add `withPositionBasedStateManagement(false)` to your `FastAdapter` setup.
 
-A simple item just needs to extend from the `AbstractExpandableItem` and provide the `Parent`, the `ViewHolder` and the `SubItem`s it will contain as type.
-```java
-public class SimpleSubExpandableItem extends AbstractExpandableItem<SimpleSubExpandableItem, SimpleSubExpandableItem.ViewHolder, SubItem> {
+A simple item just needs to extend from the `AbstractExpandableItem` and provide the `ViewHolder` as type.
+```kotlin
+open class SimpleSubExpandableItem : AbstractExpandableItem<SimpleSubExpandableItem.ViewHolder>() {
 
     /**
      * BASIC ITEM IMPLEMENTATION
      */
 }
 ```
+// See the `SimpleSubExpandableItem.kt` of the sample application for more details.
 
 
 ## Articles
-- [RecyclerView Adapter made easy](http://blog.grafixartist.com/recyclerview-adapter-android-made-fast-easy/) (FastAdapter v2.x)
+- [RecyclerView Adapter made easy](https://blog.iamsuleiman.com/recyclerview-adapter-android-made-fast-easy/) (FastAdapter v2.x)
 
-## Libs used in sample app:
+## Used by
 Mike Penz:
 - AboutLibraries https://github.com/mikepenz/AboutLibraries
 - Android-Iconics https://github.com/mikepenz/Android-Iconics
 - ItemAnimators https://github.com/mikepenz/ItemAnimators
 - MaterialDrawer https://github.com/mikepenz/MaterialDrawer
 
-Other Libs:
-- Butterknife https://github.com/JakeWharton/butterknife
-- Glide https://github.com/bumptech/glide
-- MaterialScrollBar https://github.com/krimin-killr21/MaterialScrollBar
-- StickyRecyclerHeadersAdapter https://github.com/timehop/sticky-headers-recyclerview
-
 
 # Developed By
 
-* Mike Penz 
-  * [mikepenz.com](http://mikepenz.com) - <mikepenz@gmail.com>
-  * [paypal.me/mikepenz](http://paypal.me/mikepenz)
+- Mike Penz
+  - [mikepenz.dev](https://mikepenz.dev) - [blog.mikepenz.dev](https://blog.mikepenz.dev) - <mikepenz@gmail.com>
+  - [paypal.me/mikepenz](http://paypal.me/mikepenz)
+  - [Automatic changelog generation action](https://github.com/marketplace/actions/release-changelog-builder)
 
-* Fabian Terhorst
-  * [github.com/FabianTerhorst](https://github.com/FabianTerhorst) - <fabian.terhorst@gmail.com>
-  * [paypal.me/fabianterhorst](http://paypal.me/fabianterhorst)
-
+- Fabian Terhorst
+  - [github.com/FabianTerhorst](https://github.com/FabianTerhorst) - <fabian.terhorst@gmail.com>
+  - [paypal.me/fabianterhorst](http://paypal.me/fabianterhorst)
 
 # Contributors
 
@@ -305,13 +344,15 @@ This free, open source software was also made possible by a group of volunteers 
 
 ## Special mentions
 
-I want to give say thanks to some special contributors who provided some huge PRs and many changes to improve this great library. 
+A special thanks to the very active contributors who added many improvements to this library.
 
+* **[Allan Wang](https://github.com/AllanWang)** 
 * **[MFlisar](https://github.com/MFlisar)**
+* **[RobbWatershed](https://github.com/RobbWatershed)**
 
 # License
 
-    Copyright 2017 Mike Penz
+    Copyright 2021 Mike Penz
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
